@@ -1,0 +1,25 @@
+{
+  "id": "safelight.heal",
+  "name": "Heal",
+  "version": "3.0.0",
+  "description": "Heal and clone away spots and blemishes, with a source picked from the photo.",
+  "author": "Anthony Reimche",
+  "main": "dist/index.js",
+  "license": "GPL-3.0-only",
+  "categories": [
+    "detail"
+  ],
+  "keywords": [
+    "heal",
+    "clone",
+    "spot removal",
+    "dust",
+    "blemish",
+    "retouch"
+  ],
+  "repository": "anthonyreimche/heal",
+  "worksWith": [
+    "anthonyreimche/Develop"
+  ],
+  "minAppVersion": "3.2.0"
+}
