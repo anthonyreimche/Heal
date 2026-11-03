@@ -74,7 +74,7 @@ function renderCanvas(rect: OverlayRect = view()) {
     canvas,
     rerender: (next: OverlayRect) => result.rerender(<HealCanvas rect={next} />),
     // The ring and the size reference; spots draw their circles inside a group.
-    rings: () => [...result.container.querySelectorAll("svg > circle")],
+    rings: () => [...result.container.querySelectorAll("svg > ellipse")],
     paths: () => [...result.container.querySelectorAll("path")].map((p) => p.getAttribute("d")),
   };
 }
@@ -107,7 +107,8 @@ describe("hover", () => {
     const [ring] = rings();
     expect(ring.getAttribute("cx")).toBe("280");
     expect(ring.getAttribute("cy")).toBe("290");
-    expect(ring.getAttribute("r")).toBe("30");
+    expect(Number(ring.getAttribute("rx"))).toBeCloseTo(30);
+    expect(Number(ring.getAttribute("ry"))).toBeCloseTo(30);
   });
 
   it("hides the ring while a stroke is being painted", () => {

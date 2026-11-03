@@ -30,14 +30,18 @@ function frameLocalPoint(rect: { left: number; top: number }, clientX: number, c
   return { x: (clientX - rect.left) / z, y: (clientY - rect.top) / z };
 }
 
-// Trace the outer boundary of a union of circles (screen space) as a single SVG
-// path, so a brush stroke shows one outline instead of one ring per dab.
-// Marching squares over a coverage field: inside where any circle contains the
-// node. Adjacent cells share crossing points exactly, so the emitted segments
-// form a continuous outline (round caps hide the seams). `cell` is grid step px.
+type Point = { x: number; y: number };
+
+// Trace the outer boundary of a union of circles as a single SVG path, so a
+// brush stroke shows one outline instead of one ring per dab. Marching squares
+// over a coverage field: inside where any circle contains the node. Adjacent
+// cells share crossing points exactly, so the emitted segments form a
+// continuous outline (round caps hide the seams). `cell` is the grid step in
+// the circles' space; `map` takes that space to the screen.
 export function unionOutlinePath(
   circles: { x: number; y: number; r: number }[],
   cell = 4,
+  map: (x: number, y: number) => Point = (x, y) => ({ x, y }),
 ): string {
   if (circles.length === 0) return "";
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -81,7 +85,8 @@ export function unionOutlinePath(
       const B = (): [number, number] => [x0 + (v01 / (v01 - v11)) * cell, y1];
       const L = (): [number, number] => [x0, y0 + (v00 / (v00 - v01)) * cell];
       const seg = (a: [number, number], b: [number, number]) => {
-        parts += `M${a[0].toFixed(1)} ${a[1].toFixed(1)}L${b[0].toFixed(1)} ${b[1].toFixed(1)}`;
+        const p = map(a[0], a[1]), q = map(b[0], b[1]);
+        parts += `M${p.x.toFixed(1)} ${p.y.toFixed(1)}L${q.x.toFixed(1)} ${q.y.toFixed(1)}`;
       };
       switch (code) {
         case 1: case 14: seg(L(), T()); break;
@@ -106,7 +111,37 @@ function projectToScreen(rect: Rect, crop: CropRect, forward: Mat3, sx: number, 
   return { x: rect.x + ox * rect.w, y: rect.y + oy * rect.h };
 }
 
-const radiusOnScreen = (rect: Rect, crop: CropRect, r: number) => (r / crop.height) * rect.h;
+/** A disc as drawn on screen: centre, semi-axes in px, turn in degrees. */
+interface ScreenDisc {
+  x: number;
+  y: number;
+  rx: number;
+  ry: number;
+  angle: number;
+}
+
+// Where the photo's disc of radius r (image-height units) at (sx, sy) lands on
+// screen. The transform scales each axis on its own (Aspect, Perspective), so a
+// disc that heals round in the photo can be an ellipse on screen: its axes are
+// the singular values of the map the disc's two radii go through.
+function discOnScreen(toScreen: (sx: number, sy: number) => Point, sx: number, sy: number, r: number, imageAspect: number): ScreenDisc {
+  const c = toScreen(sx, sy);
+  const ex = toScreen(sx + r / imageAspect, sy);
+  const ey = toScreen(sx, sy + r);
+  const m00 = ex.x - c.x, m01 = ey.x - c.x, m10 = ex.y - c.y, m11 = ey.y - c.y;
+  const e = (m00 + m11) / 2, f = (m00 - m11) / 2, g = (m10 + m01) / 2, h = (m10 - m01) / 2;
+  const q = Math.hypot(e, h), w = Math.hypot(f, g);
+  const angle = ((Math.atan2(g, f) + Math.atan2(h, e)) / 2) * (180 / Math.PI);
+  return { x: c.x, y: c.y, rx: q + w, ry: Math.abs(q - w), angle };
+}
+
+const ellipseAt = (x: number, y: number, rx: number, ry: number, angle: number) => ({
+  cx: x,
+  cy: y,
+  rx,
+  ry,
+  transform: `rotate(${angle} ${x} ${y})`,
+});
 
 // Traced brush outlines, keyed by spot: the store replaces a spot object on
 // every edit, and `sig` holds the view numbers, because the canvas hands over
@@ -157,10 +192,11 @@ function pointerStore() {
 type PointerStore = ReturnType<typeof pointerStore>;
 
 /** The brush ring under the pointer, hidden while a drag is on. */
-function Ring({ pointer, radius }: { pointer: PointerStore; radius: number }) {
+function Ring({ pointer, shape }: { pointer: PointerStore; shape: ScreenDisc }) {
   const { at, dragging } = React.useSyncExternalStore(pointer.subscribe, pointer.get);
   if (!at || dragging) return null;
-  return <circle cx={at.x} cy={at.y} r={Math.max(3, radius)} fill="none" stroke="#e0e0e0" strokeWidth={1} opacity={0.8} />;
+  const ring = ellipseAt(at.x, at.y, Math.max(3, shape.rx), Math.max(3, shape.ry), shape.angle);
+  return <ellipse {...ring} fill="none" stroke="#e0e0e0" strokeWidth={1} opacity={0.8} />;
 }
 
 /** The tool held while the Heal button is on. */
@@ -190,42 +226,32 @@ export function HealCanvas({ rect }: { rect: Rect }) {
     return mat3Apply(inv, crop.x + ox * crop.width, crop.y + oy * crop.height);
   };
   const toScreen = (sx: number, sy: number) => projectToScreen(rect, crop, forward, sx, sy);
-  const radiusToScreen = (r: number) => radiusOnScreen(rect, crop, r);
   const frameXY = (e: ReactPointerEvent) =>
     frameLocalPoint(e.currentTarget.getBoundingClientRect(), e.clientX, e.clientY);
   const params = () => useDevelopStore.getState().params;
 
   function hitSpot(px: number, py: number): { kind: "spot-dst" | "spot-src"; id: string } | null {
+    const p = toSource(px, py);
+    // On the disc as the transform draws it, or near its centre for a tiny one.
+    const grabs = (sx: number, sy: number, r: number) => {
+      if (Math.hypot((p.x - sx) * imageAspect, p.y - sy) <= r) return true;
+      const c = toScreen(sx, sy);
+      return Math.hypot(px - c.x, py - c.y) <= HIT;
+    };
     for (let i = spots.length - 1; i >= 0; i--) {
       const s = spots[i];
       // Source: a brush source can be grabbed anywhere on its (offset) shape;
       // a circle source only near its anchor.
       if (s.shape === "brush" && s.dabs) {
         const ox = s.srcX - s.dstX, oy = s.srcY - s.dstY;
-        for (const d of s.dabs) {
-          const c = toScreen(d.x + ox, d.y + oy);
-          if (Math.hypot(px - c.x, py - c.y) <= Math.max(HIT, radiusToScreen(d.radius))) {
-            return { kind: "spot-src", id: s.id };
-          }
-        }
-      } else {
-        const src = toScreen(s.srcX, s.srcY);
-        if (Math.hypot(px - src.x, py - src.y) <= Math.max(HIT, radiusToScreen(s.radius))) {
-          return { kind: "spot-src", id: s.id };
-        }
+        if (s.dabs.some((d) => grabs(d.x + ox, d.y + oy, d.radius))) return { kind: "spot-src", id: s.id };
+      } else if (grabs(s.srcX, s.srcY, s.radius)) {
+        return { kind: "spot-src", id: s.id };
       }
       if (s.shape === "brush" && s.dabs) {
-        for (const d of s.dabs) {
-          const c = toScreen(d.x, d.y);
-          if (Math.hypot(px - c.x, py - c.y) <= Math.max(HIT, radiusToScreen(d.radius))) {
-            return { kind: "spot-dst", id: s.id };
-          }
-        }
-      } else {
-        const dst = toScreen(s.dstX, s.dstY);
-        if (Math.hypot(px - dst.x, py - dst.y) <= Math.max(HIT, radiusToScreen(s.radius))) {
-          return { kind: "spot-dst", id: s.id };
-        }
+        if (s.dabs.some((d) => grabs(d.x, d.y, d.radius))) return { kind: "spot-dst", id: s.id };
+      } else if (grabs(s.dstX, s.dstY, s.radius)) {
+        return { kind: "spot-dst", id: s.id };
       }
     }
     return null;
@@ -375,10 +401,16 @@ export function HealCanvas({ rect }: { rect: Rect }) {
     void useDevelopStore.getState().commitEdit("Retouch");
   };
 
-  const spotPx = radiusOnScreen(rect, crop, tool.size);
-  const Outlines = memoOutlines();
   const refCx = rect.x + rect.w / 2;
   const refCy = rect.y + rect.h / 2;
+  // The size a new spot heals at, taken at the view's centre: the cursor ring
+  // keeps it while it follows the pointer, so a hover maps nothing.
+  const spotShape = React.useMemo(() => {
+    const c = toSource(refCx, refCy);
+    return discOnScreen(toScreen, c.x, c.y, tool.size, imageAspect);
+  }, [rect.x, rect.y, rect.w, rect.h, crop, forward, inv, imageAspect, tool.size]);
+  const core = 1 - tool.feather / 100;
+  const Outlines = memoOutlines();
 
   return (
     <div
@@ -390,15 +422,15 @@ export function HealCanvas({ rect }: { rect: Rect }) {
       onPointerLeave={() => pointer.set({ at: null })}
     >
       <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
-        <Outlines spots={spots} selectedSpotId={tool.selectedSpotId} rect={rect} crop={crop} forward={forward} />
+        <Outlines spots={spots} selectedSpotId={tool.selectedSpotId} rect={rect} crop={crop} forward={forward} imageAspect={imageAspect} />
         {/* Centre reference while dragging the Size / Feather sliders. */}
         {tool.preview && (
           <g opacity={0.8}>
-            <circle cx={refCx} cy={refCy} r={Math.max(3, spotPx)} fill="none" stroke="#fff" strokeWidth={1.2} />
-            <circle cx={refCx} cy={refCy} r={Math.max(1, spotPx * (1 - tool.feather / 100))} fill="none" stroke="#fff" strokeWidth={0.6} opacity={0.5} />
+            <ellipse {...ellipseAt(refCx, refCy, Math.max(3, spotShape.rx), Math.max(3, spotShape.ry), spotShape.angle)} fill="none" stroke="#fff" strokeWidth={1.2} />
+            <ellipse {...ellipseAt(refCx, refCy, Math.max(1, spotShape.rx * core), Math.max(1, spotShape.ry * core), spotShape.angle)} fill="none" stroke="#fff" strokeWidth={0.6} opacity={0.5} />
           </g>
         )}
-        <Ring pointer={pointer} radius={spotPx} />
+        <Ring pointer={pointer} shape={spotShape} />
       </svg>
     </div>
   );
@@ -410,20 +442,21 @@ interface SpotOutlinesProps {
   rect: Rect;
   crop: CropRect;
   forward: Mat3;
+  imageAspect: number;
 }
 
-function SpotOutlines({ spots, selectedSpotId, rect, crop, forward }: SpotOutlinesProps) {
+function SpotOutlines({ spots, selectedSpotId, rect, crop, forward, imageAspect }: SpotOutlinesProps) {
   const toScreen = (sx: number, sy: number) => projectToScreen(rect, crop, forward, sx, sy);
-  const radiusToScreen = (r: number) => radiusOnScreen(rect, crop, r);
   const sig = viewSignature(rect, crop, forward);
+  // Traced where the dabs are round, the photo scaled to image-height units,
+  // then drawn through the transform, so the outline is the region it heals.
   const brushOutline = (s: RetouchSpot, dabs: BrushDab[]) => {
     const cached = outlineCache.get(s);
     if (cached?.sig === sig) return cached.path;
-    const circles = dabs.map((db) => {
-      const c = toScreen(db.x, db.y);
-      return { x: c.x, y: c.y, r: radiusToScreen(db.radius) };
-    });
-    const path = unionOutlinePath(circles);
+    const circles = dabs.map((db) => ({ x: db.x * imageAspect, y: db.y, r: db.radius }));
+    const first = discOnScreen(toScreen, dabs[0].x, dabs[0].y, dabs[0].radius, imageAspect);
+    const pxPerUnit = Math.max(first.rx, first.ry) / dabs[0].radius;
+    const path = unionOutlinePath(circles, 4 / pxPerUnit, (x, y) => toScreen(x / imageAspect, y));
     outlineCache.set(s, { sig, path });
     return path;
   };
@@ -433,7 +466,6 @@ function SpotOutlines({ spots, selectedSpotId, rect, crop, forward }: SpotOutlin
       {spots.map((s) => {
         const src = toScreen(s.srcX, s.srcY);
         const dst = toScreen(s.dstX, s.dstY);
-        const r = radiusToScreen(s.radius);
         const sel = s.id === selectedSpotId;
         const col = "#e0e0e0";
         if (s.shape === "brush" && s.dabs && s.dabs.length > 0) {
@@ -449,11 +481,13 @@ function SpotOutlines({ spots, selectedSpotId, rect, crop, forward }: SpotOutlin
             </g>
           );
         }
+        const srcDisc = discOnScreen(toScreen, s.srcX, s.srcY, s.radius, imageAspect);
+        const dstDisc = discOnScreen(toScreen, s.dstX, s.dstY, s.radius, imageAspect);
         return (
           <g key={s.id} data-spot={s.id}>
             <line x1={src.x} y1={src.y} x2={dst.x} y2={dst.y} stroke={col} strokeWidth={1} strokeDasharray="3 3" opacity={0.7} />
-            <circle cx={src.x} cy={src.y} r={r} fill="none" stroke={col} strokeWidth={1} strokeDasharray="2 2" />
-            <circle cx={dst.x} cy={dst.y} r={r} fill="none" stroke={col} strokeWidth={sel ? 2 : 1.2} />
+            <ellipse {...ellipseAt(src.x, src.y, srcDisc.rx, srcDisc.ry, srcDisc.angle)} fill="none" stroke={col} strokeWidth={1} strokeDasharray="2 2" />
+            <ellipse {...ellipseAt(dst.x, dst.y, dstDisc.rx, dstDisc.ry, dstDisc.angle)} fill="none" stroke={col} strokeWidth={sel ? 2 : 1.2} />
           </g>
         );
       })}
