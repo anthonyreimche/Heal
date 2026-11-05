@@ -314,25 +314,25 @@ function P(e, t, n, r) {
 	return f <= 0 ? null : (f < h && (l.cls[d] = w), l);
 }
 var F = 0x56bc75e2d63100000;
-function I(e) {
+function ee(e) {
 	let { w: t, h: n, cls: r } = e, i = new Float64Array(t * n);
 	for (let e = 0; e < i.length; e++) i[e] = r[e] === w ? 0 : F;
 	let a = Math.max(t, n), o = new Float64Array(a), s = new Float64Array(a), c = new Float64Array(a + 1), l = new Int32Array(a);
 	for (let e = 0; e < t; e++) {
 		for (let r = 0; r < n; r++) o[r] = i[r * t + e];
-		L(o, n, s, l, c);
+		I(o, n, s, l, c);
 		for (let r = 0; r < n; r++) i[r * t + e] = s[r];
 	}
 	for (let e = 0; e < n; e++) {
 		for (let n = 0; n < t; n++) o[n] = i[e * t + n];
-		L(o, t, s, l, c);
+		I(o, t, s, l, c);
 		for (let n = 0; n < t; n++) i[e * t + n] = s[n];
 	}
 	let u = new Float32Array(t * n);
 	for (let e = 0; e < u.length; e++) u[e] = Math.sqrt(i[e]);
 	return u;
 }
-function L(e, t, n, r, i) {
+function I(e, t, n, r, i) {
 	let a = 0;
 	r[0] = 0, i[0] = -Infinity, i[1] = Infinity;
 	for (let n = 1; n < t; n++) {
@@ -347,7 +347,7 @@ function L(e, t, n, r, i) {
 		n[o] = t * t + e[r[a]];
 	}
 }
-function ee(e, t, n, r) {
+function L(e, t, n, r) {
 	if (n <= r) return !0;
 	let i = Math.imul(e, 668265261) ^ Math.imul(t, 374761393);
 	return i = Math.imul(i ^ i >>> 15, 2246822507), i ^= i >>> 13, (i >>> 0) / 4294967296 < r / n;
@@ -393,7 +393,7 @@ function re(e, t, n) {
 function ie(e, t, n) {
 	let r = Math.max(g, O(e) * n), i = e.kind === "circle" ? N(e, t, n, r) : P(e.dabs, t, n, r);
 	if (!i) return null;
-	let a = I(i), o = 0, s = 0;
+	let a = ee(i), o = 0, s = 0;
 	for (let e = 0; e < i.cls.length; e++) i.cls[e] === w ? o++ : i.cls[e] === C && (s = Math.max(s, a[e]));
 	if (o === 0) return null;
 	let c = s + r, l = 0;
@@ -404,7 +404,7 @@ function ie(e, t, n) {
 		let n = e * i.w + t, r = i.cls[n], s = r !== w && a[n] <= c;
 		if (r === S && !s) continue;
 		let u = i.x0 + t, g = i.y0 + e, C = u - d, D = g - f, O = Math.hypot(C, D);
-		re(b, C, D), E = Math.max(E, O), r !== S && (y.push(u, g), re(x, C, D), k = Math.max(k, O)), r === w && (re(T, C, D), A = Math.max(A, O), ee(u, g, o, v) && p.push(u, g)), s && ee(u, g, l, _) && (m.push(u, g), h.push(1 - a[n] / (c + 1)));
+		re(b, C, D), E = Math.max(E, O), r !== S && (y.push(u, g), re(x, C, D), k = Math.max(k, O)), r === w && (re(T, C, D), A = Math.max(A, O), L(u, g, o, v) && p.push(u, g)), s && L(u, g, l, _) && (m.push(u, g), h.push(1 - a[n] / (c + 1)));
 	}
 	return p.length === 0 || m.length === 0 ? null : {
 		ax: d,
@@ -533,10 +533,10 @@ function J(e, t, n, r, i) {
 		let n = W[0], w = W[1];
 		if (i && (n < 0 || w < 0 || n > d || w > f)) continue;
 		Le(o, n, w, s);
-		let T = a.bandWeight[r], E = 5 * r, D = e.dest[E], O = e.dest[E + 1], k = e.dest[E + 2], A = e.dest[E + 3], j = e.dest[E + 4], M = U[0], N = U[1], P = U[2], F = (c * U[3] - l * U[4]) * u, I = (l * U[3] + c * U[4]) * u;
-		p += T, v += T * D, y += T * O, b += T * k, x += T * M, S += T * N, C += T * P, _ += T * (M * M + N * N + P * P), m += T * (A * A + j * j), h += T * (F * F + I * I), g += T * (A * F + j * I);
-		let L = e.sector[r];
-		Ie[L] += T, G[3 * L] += T * D, G[3 * L + 1] += T * O, G[3 * L + 2] += T * k, K[3 * L] += T * M, K[3 * L + 1] += T * N, K[3 * L + 2] += T * P;
+		let T = a.bandWeight[r], E = 5 * r, D = e.dest[E], O = e.dest[E + 1], k = e.dest[E + 2], A = e.dest[E + 3], j = e.dest[E + 4], M = U[0], N = U[1], P = U[2], F = (c * U[3] - l * U[4]) * u, ee = (l * U[3] + c * U[4]) * u;
+		p += T, v += T * D, y += T * O, b += T * k, x += T * M, S += T * N, C += T * P, _ += T * (M * M + N * N + P * P), m += T * (A * A + j * j), h += T * (F * F + ee * ee), g += T * (A * F + j * ee);
+		let I = e.sector[r];
+		Ie[I] += T, G[3 * I] += T * D, G[3 * I + 1] += T * O, G[3 * I + 2] += T * k, K[3 * I] += T * M, K[3 * I + 1] += T * N, K[3 * I + 2] += T * P;
 	}
 	if (p <= 0) return Infinity;
 	q[0] = v / p, q[1] = y / p, q[2] = b / p, q[3] = x / p, q[4] = S / p, q[5] = C / p;
@@ -551,14 +551,14 @@ function J(e, t, n, r, i) {
 			j += t;
 		}
 	}
-	let M = A / j / (k / j + ge), N = q[0] - q[3], P = q[1] - q[4], F = q[2] - q[5], I = Math.sqrt(N * N + P * P + F * F) / _e, L = Math.max(0, _ / p - (q[3] * q[3] + q[4] * q[4] + q[5] * q[5])), ee = ve * Math.sqrt(L) + ye, te = 0, ne = 0, R = 0, re = a.interior.length / 2;
+	let M = A / j / (k / j + ge), N = q[0] - q[3], P = q[1] - q[4], F = q[2] - q[5], ee = Math.sqrt(N * N + P * P + F * F) / _e, I = Math.max(0, _ / p - (q[3] * q[3] + q[4] * q[4] + q[5] * q[5])), L = ve * Math.sqrt(I) + ye, te = 0, ne = 0, R = 0, re = a.interior.length / 2;
 	for (let e = 0; e < re; e += r) {
 		Re(a, t, c, l, a.interior[2 * e], a.interior[2 * e + 1]), Le(o, W[0], W[1], s), te += (U[3] * U[3] + U[4] * U[4]) * u * u;
 		let n = U[0] - q[3], r = U[1] - q[4], i = U[2] - q[5], d = Math.sqrt(n * n + r * r + i * i);
-		d > ee && (ne += (d - ee) / ee), R++;
+		d > L && (ne += (d - L) / L), R++;
 	}
 	let ie = R > 0 ? te / R : E, z = Math.max(Ve(E, T, he), Ve(T, E, he)) + Ve(T, ie, he), B = R > 0 ? be * ne / R : 0, V = Ve(ie, E, xe), H = Math.hypot(t.tx, t.ty) / a.bandPx;
-	return ce * O + le * z + ue * M + e.meanWeight * I + de * (B + V) + fe * H;
+	return ce * O + le * z + ue * M + e.meanWeight * ee + de * (B + V) + fe * H;
 }
 function He(e, t, n, r, i, a, o) {
 	let s = e.band.length / 2, c = new Float32Array(5 * s), l = new Uint8Array(s);
@@ -568,7 +568,7 @@ function He(e, t, n, r, i, a, o) {
 		let a = (Math.atan2(i - e.ay, r - e.ax) + Math.PI) / (2 * Math.PI);
 		l[n] = Math.min(7, Math.floor(a * Se));
 	}
-	let u = Ge(e, t, n, r, 0, 0, !1);
+	let u = Ke(e, t, n, r, 0, 0, !1);
 	return {
 		rr: e,
 		crop: t,
@@ -590,7 +590,7 @@ function Ue(e, t, n, r) {
 		cost: i
 	} : e;
 }
-function Y(e, t, n, r = 1) {
+function We(e, t, n, r = 1) {
 	let i = {
 		...t,
 		cost: J(e, t, 1, 1, n)
@@ -611,8 +611,8 @@ function Y(e, t, n, r = 1) {
 	}
 	return i;
 }
-var We = (e) => Math.atan2(Math.sin(e), Math.cos(e));
-function Ge(e, t, n, r, i, a, o) {
+var Ge = (e) => Math.atan2(Math.sin(e), Math.cos(e));
+function Ke(e, t, n, r, i, a, o) {
 	let s = 0, c = 0, l = 0;
 	for (let u = 0; u < e.band.length / 2; u++) {
 		let d = e.band[2 * u] + i, f = e.band[2 * u + 1] + a;
@@ -623,19 +623,19 @@ function Ge(e, t, n, r, i, a, o) {
 	}
 	return m(s, c, l);
 }
-function Ke(e, t, n) {
-	let r = Ge(e.rr, e.crop, e.w, e.h, t.tx, t.ty, n);
+function qe(e, t, n) {
+	let r = Ke(e.rr, e.crop, e.w, e.h, t.tx, t.ty, n);
 	if (e.destCoherence < je || r.coherence < je) return t;
 	let i = e.destTheta - r.theta, a = [i, i + Math.PI].map((e) => ({
 		tx: t.tx,
 		ty: t.ty,
-		angle: We(e),
+		angle: Ge(e),
 		scale: 1
-	})), o = a.map((t) => J(e, t, 1, 1, n)), s = (o[0] === Infinity && o[1] === Infinity ? a : [a[o[0] <= o[1] ? 0 : 1]]).map((t) => Y(e, t, n)).reduce((e, t) => t.cost < e.cost ? t : e);
+	})), o = a.map((t) => J(e, t, 1, 1, n)), s = (o[0] === Infinity && o[1] === Infinity ? a : [a[o[0] <= o[1] ? 0 : 1]]).map((t) => We(e, t, n)).reduce((e, t) => t.cost < e.cost ? t : e);
 	for (let t of Me) {
 		let r = s.angle;
 		for (let i of [-t, t]) {
-			let t = We(r + i * Math.PI / 180);
+			let t = Ge(r + i * Math.PI / 180);
 			s = Ue(s, e, {
 				tx: s.tx,
 				ty: s.ty,
@@ -644,14 +644,14 @@ function Ke(e, t, n) {
 			}, n);
 		}
 	}
-	return s = Y(e, s, n), s.cost > Ne * t.cost ? t : s.angle === 0 ? s : qe(e, s, n);
-}
-function qe(e, t, n) {
-	let r = t;
-	for (let t of Pe) r = Y(e, r, n, t);
-	return r;
+	return s = We(e, s, n), s.cost > Ne * t.cost ? t : s.angle === 0 ? s : Je(e, s, n);
 }
 function Je(e, t, n) {
+	let r = t;
+	for (let t of Pe) r = We(e, r, n, t);
+	return r;
+}
+function Ye(e, t, n) {
 	let r = t;
 	for (let i of Ae) r = Ue(r, e, {
 		tx: t.tx,
@@ -659,12 +659,12 @@ function Je(e, t, n) {
 		angle: t.angle,
 		scale: i
 	}, n);
-	return r === t ? t : (r = Y(e, r, n), r.cost <= Ne * t.cost ? r : t);
+	return r === t ? t : (r = We(e, r, n), r.cost <= Ne * t.cost ? r : t);
 }
-function Ye(e, t, n) {
-	return e.destCoherence < je ? t : Je(e, Ke(e, t, n), n);
+function Xe(e, t, n) {
+	return e.destCoherence < je ? t : Ye(e, qe(e, t, n), n);
 }
-function Xe(e, t) {
+function Ze(e, t) {
 	let { rr: n, window: r } = e, i = Math.max(1, Math.round(n.bandPx / 3), Math.ceil(2 * r / we)), a = Math.max(1, Math.floor(n.band.length / 2 / Te)), o = Math.max(1, Math.floor(n.interior.length / 2 / Ee)), s = Math.floor(r / i) * i, c = [];
 	for (let n = -s; n <= s; n += i) for (let l = -s; l <= s; l += i) {
 		if (l * l + n * n > r * r) continue;
@@ -684,22 +684,22 @@ function Xe(e, t) {
 	for (let e of c) if (l.every((t) => Math.hypot(t.tx - e.tx, t.ty - e.ty) >= n.bandPx) && l.push(e), l.length === De) break;
 	let u = null, d = /* @__PURE__ */ new Set();
 	for (let n of l) {
-		let r = Y(e, n, t), i = `${r.tx},${r.ty}`;
+		let r = We(e, n, t), i = `${r.tx},${r.ty}`;
 		if (d.has(i)) continue;
 		d.add(i);
-		let a = e.rotatable ? Ye(e, r, t) : r;
+		let a = e.rotatable ? Xe(e, r, t) : r;
 		(!u || a.cost < u.cost) && (u = a);
 	}
 	return u;
 }
-function Ze(e, t, n) {
+function Qe(e, t, n) {
 	return [
 		e + n / 3 + t / 2,
 		e - 2 * n / 3,
 		e + n / 3 - t / 2
 	];
 }
-function Qe(e, t, n, r) {
+function $e(e, t, n, r) {
 	let i = { ...t.bounds }, a = (e, a, o) => {
 		let s = e * n - .5 - t.ax, c = a * r - .5 - t.ay;
 		i.minDx = Math.min(i.minDx, s - o), i.maxDx = Math.max(i.maxDx, s + o), i.minDy = Math.min(i.minDy, c - o), i.maxDy = Math.max(i.maxDy, c + o);
@@ -708,17 +708,17 @@ function Qe(e, t, n, r) {
 	else for (let n of e.dabs) n.erase || a(n.x, n.y, n.radius * r + t.bandPx);
 	return i;
 }
-function $e(e, t) {
+function et(e, t) {
 	if (!H) return null;
 	let n = k(e, H.widths[0] / H.heights[0]), r = A(O(e), n, H.heights), i = H.widths[r], a = H.heights[r], o = ie(e, i, a);
 	if (!o) return null;
 	let s = {
 		...o,
-		bounds: Qe(e, o, i, a)
-	}, c = n * a + Ce * s.bandPx, l = e.kind === "circle" ? s.reach / Ae[0] : 0, u = s.bounds, d = He(s, p(H.pixels(r), s.ax + Math.min(u.minDx, -l) - c - 2, s.ay + Math.min(u.minDy, -l) - c - 2, s.ax + Math.max(u.maxDx, l) + c + 2, s.ay + Math.max(u.maxDy, l) + c + 2), i, a, c, t, e.kind === "circle"), f = !1, m = Xe(d, f);
-	if (m ||= (f = !0, Xe(d, f)), !m) return null;
+		bounds: $e(e, o, i, a)
+	}, c = n * a + Ce * s.bandPx, l = e.kind === "circle" ? s.reach / Ae[0] : 0, u = s.bounds, d = He(s, p(H.pixels(r), s.ax + Math.min(u.minDx, -l) - c - 2, s.ay + Math.min(u.minDy, -l) - c - 2, s.ax + Math.max(u.maxDx, l) + c + 2, s.ay + Math.max(u.maxDy, l) + c + 2), i, a, c, t, e.kind === "circle"), f = !1, m = Ze(d, f);
+	if (m ||= (f = !0, Ze(d, f)), !m) return null;
 	J(d, m, 1, 1, f);
-	let h = Ze(q[0], q[1], q[2]), g = Ze(q[3], q[4], q[5]), _ = (e) => Math.max(-.5, Math.min(.5, (h[e] - g[e]) / 255));
+	let h = Qe(q[0], q[1], q[2]), g = Qe(q[3], q[4], q[5]), _ = (e) => Math.max(-.5, Math.min(.5, (h[e] - g[e]) / 255));
 	return {
 		x: (s.ax + m.tx + .5) / i,
 		y: (s.ay + m.ty + .5) / a,
@@ -731,7 +731,7 @@ function $e(e, t) {
 }
 //#endregion
 //#region src/stages.ts
-var et = "safelight.heal.retouch", tt = (e) => e === 1 ? "clamp(textureLod(uImage, sUv, 0.0).rgb + corr, 0.0, 1.0);" : "textureLod(uImage, sUv, 0.0).rgb + corr;\n    // A display-encoded source holds nothing outside [0, 1], and its decode\n    // (srgbToLinear) is undefined below -0.055, which the correction can reach.\n    if (!uLinear) srcCol = clamp(srcCol, 0.0, 1.0);", nt = (e) => `// ---- Retouch: spot heal / clone -------------------------------------------
+var tt = "safelight.heal.retouch", nt = (e) => e === 1 ? "clamp(textureLod(uImage, sUv, 0.0).rgb + corr, 0.0, 1.0);" : "textureLod(uImage, sUv, 0.0).rgb + corr;\n    // A display-encoded source holds nothing outside [0, 1], and its decode\n    // (srgbToLinear) is undefined below -0.055, which the correction can reach.\n    if (!uLinear) srcCol = clamp(srcCol, 0.0, 1.0);", rt = (e) => `// ---- Retouch: spot heal / clone -------------------------------------------
 // Closed-form gradient-domain (membrane) correction for a heal spot. Samples the
 // boundary mismatch (destination - source) just outside the disc and interpolates
 // it across the interior with inverse-distance (Shepard) weights — a smooth
@@ -801,7 +801,7 @@ vec3 applyRetouch(vec2 uv, vec3 base) {
     vec3 corr = (uMembraneHeal && b.w > 0.5)
       ? membraneCorrection(dst, src, tc, radius, uv)
       : uSpotTint[i].rgb;
-    vec3 srcCol = ${tt(e)}
+    vec3 srcCol = ${nt(e)}
     c = mix(c, srcCol, w);
   }
   // Brush-shaped retouch: painted coverage from the atlas, one source offset each.
@@ -820,19 +820,19 @@ vec3 applyRetouch(vec2 uv, vec3 base) {
     }
   }
   return c;
-}`, rt = (e, t, n) => ({
+}`, it = (e, t, n) => ({
 	key: e,
 	glslType: "vec4",
 	length: n,
 	size: t,
 	default: Array(n * 4).fill(0)
-}), it = (e, t) => [...e.flat(), ...Array((t - e.length) * 4).fill(0)], at = (e) => ({
-	id: et,
+}), at = (e, t) => [...e.flat(), ...Array((t - e.length) * 4).fill(0)], ot = (e) => ({
+	id: tt,
 	name: "Heal",
 	phase: "geometry",
 	anchor: "retouch",
 	glsl: "",
-	helpers: nt(e),
+	helpers: rt(e),
 	defines: {
 		MAX_SPOTS: 32,
 		MAX_RBRUSH: 4
@@ -843,10 +843,10 @@ vec3 applyRetouch(vec2 uv, vec3 base) {
 			glslType: "int",
 			default: 0
 		},
-		rt("uSpotA", "MAX_SPOTS", 32),
-		rt("uSpotB", "MAX_SPOTS", 32),
-		rt("uSpotC", "MAX_SPOTS", 32),
-		rt("uSpotTint", "MAX_SPOTS", 32),
+		it("uSpotA", "MAX_SPOTS", 32),
+		it("uSpotB", "MAX_SPOTS", 32),
+		it("uSpotC", "MAX_SPOTS", 32),
+		it("uSpotTint", "MAX_SPOTS", 32),
 		{
 			key: "uRetouchCount",
 			glslType: "int",
@@ -864,7 +864,7 @@ vec3 applyRetouch(vec2 uv, vec3 base) {
 				0
 			]
 		},
-		rt("uRetouchData", "MAX_RBRUSH", 4),
+		it("uRetouchData", "MAX_RBRUSH", 4),
 		{
 			key: "uMembraneHeal",
 			glslType: "bool",
@@ -883,25 +883,25 @@ vec3 applyRetouch(vec2 uv, vec3 base) {
 		}] : []).slice(0, 4), i = (e, t) => e.mode === "clone" ? 0 : t ?? 0;
 		return {
 			uSpotCount: n.length,
-			uSpotA: it(n.map((e) => [
+			uSpotA: at(n.map((e) => [
 				e.dstX,
 				e.dstY,
 				e.srcX,
 				e.srcY
 			]), 32),
-			uSpotB: it(n.map((e) => [
+			uSpotB: at(n.map((e) => [
 				e.radius,
 				e.feather / 100,
 				e.opacity / 100,
 				e.mode === "clone" ? 0 : 1
 			]), 32),
-			uSpotC: it(n.map((e) => [
+			uSpotC: at(n.map((e) => [
 				Math.cos(e.angle ?? 0),
 				Math.sin(e.angle ?? 0),
 				1 / (e.scale || 1),
 				0
 			]), 32),
-			uSpotTint: it(n.map((e) => [
+			uSpotTint: at(n.map((e) => [
 				i(e, e.recolorR),
 				i(e, e.recolorG),
 				i(e, e.recolorB),
@@ -914,7 +914,7 @@ vec3 applyRetouch(vec2 uv, vec3 base) {
 				2,
 				3
 			],
-			uRetouchData: it(r.map((e) => [
+			uRetouchData: at(r.map((e) => [
 				e.srcX - e.dstX,
 				e.srcY - e.dstY,
 				e.opacity / 100,
@@ -926,112 +926,132 @@ vec3 applyRetouch(vec2 uv, vec3 base) {
 			}))
 		};
 	}
-}), ot = {
+}), st = {
 	size: .04,
 	feather: 50,
 	opacity: 100,
 	mode: "heal",
 	selectedSpotId: null,
 	preview: !1
-}, st = ot, ct = /* @__PURE__ */ new Set(), lt = () => st;
-function X(e) {
-	st = {
-		...st,
+}, ct = st, lt = /* @__PURE__ */ new Set(), ut = () => ct;
+function Y(e) {
+	ct = {
+		...ct,
 		...e
 	};
-	for (let e of ct) e();
+	for (let e of lt) e();
 }
-var ut = () => X(ot), dt = (e) => (ct.add(e), () => void ct.delete(e)), ft = () => e.useSyncExternalStore(dt, lt), pt = () => t.stores.useDevelopStore.getState().params.retouch, mt = (e) => t.stores.useDevelopStore.getState().setParam("retouch", e);
-function ht(e) {
-	pt().length >= 32 || (mt([...pt(), e]), X({ selectedSpotId: e.id }));
+var dt = () => Y(st), ft = (e) => (lt.add(e), () => void lt.delete(e)), pt = () => e.useSyncExternalStore(ft, ut), mt = () => t.stores.useDevelopStore.getState().params.retouch, ht = (e) => t.stores.useDevelopStore.getState().setParam("retouch", e);
+function gt(e) {
+	mt().length >= 32 || (ht([...mt(), e]), Y({ selectedSpotId: e.id }));
 }
-function Z(e, t) {
-	mt(pt().map((n) => n.id === e ? {
+function X(e, t) {
+	ht(mt().map((n) => n.id === e ? {
 		...n,
 		...t
 	} : n));
 }
-function gt(e) {
-	mt(pt().filter((t) => t.id !== e)), st.selectedSpotId === e && X({ selectedSpotId: null });
+function _t(e) {
+	ht(mt().filter((t) => t.id !== e)), ct.selectedSpotId === e && Y({ selectedSpotId: null });
 }
 //#endregion
 //#region src/HealCanvas.tsx
-var _t = 0, vt = (e) => `${e}-${Date.now().toString(36)}-${_t++}`;
-function yt(e, n, r) {
+var vt = 0, yt = (e) => `${e}-${Date.now().toString(36)}-${vt++}`;
+function bt(e, n, r) {
 	let i = t.stores.useSettings.getState().uiScale || 1;
 	return {
 		x: (n - e.left) / i,
 		y: (r - e.top) / i
 	};
 }
-function bt(e, t = 4) {
+function xt(e, t = 4, n = (e, t) => ({
+	x: e,
+	y: t
+})) {
 	if (e.length === 0) return "";
-	let n = Infinity, r = Infinity, i = -Infinity, a = -Infinity;
-	for (let t of e) n = Math.min(n, t.x - t.r), r = Math.min(r, t.y - t.r), i = Math.max(i, t.x + t.r), a = Math.max(a, t.y + t.r);
-	n -= t, r -= t, i += t, a += t;
-	let o = Math.max(1, Math.ceil((i - n) / t)), s = Math.max(1, Math.ceil((a - r) / t)), c = (i, a) => {
-		let o = n + i * t, s = r + a * t, c = -Infinity;
+	let r = Infinity, i = Infinity, a = -Infinity, o = -Infinity;
+	for (let t of e) r = Math.min(r, t.x - t.r), i = Math.min(i, t.y - t.r), a = Math.max(a, t.x + t.r), o = Math.max(o, t.y + t.r);
+	r -= t, i -= t, a += t, o += t;
+	let s = Math.max(1, Math.ceil((a - r) / t)), c = Math.max(1, Math.ceil((o - i) / t)), l = (n, a) => {
+		let o = r + n * t, s = i + a * t, c = -Infinity;
 		for (let t of e) {
 			let e = o - t.x, n = s - t.y, r = t.r * t.r - (e * e + n * n);
 			r > c && (c = r);
 		}
 		return c;
-	}, l = "", u = new Float64Array(o + 1);
-	for (let e = 0; e <= o; e++) u[e] = c(e, 0);
-	for (let e = 0; e < s; e++) {
-		let i = new Float64Array(o + 1);
-		for (let t = 0; t <= o; t++) i[t] = c(t, e + 1);
-		let a = r + e * t, s = a + t;
-		for (let e = 0; e < o; e++) {
-			let r = u[e], o = u[e + 1], c = i[e], d = i[e + 1], f = r >= 0 | (o >= 0 ? 2 : 0) | (d >= 0 ? 4 : 0) | (c >= 0 ? 8 : 0);
-			if (f === 0 || f === 15) continue;
-			let p = n + e * t, m = p + t, h = () => [p + r / (r - o) * t, a], g = () => [m, a + o / (o - d) * t], _ = () => [p + c / (c - d) * t, s], v = () => [p, a + r / (r - c) * t], y = (e, t) => {
-				l += `M${e[0].toFixed(1)} ${e[1].toFixed(1)}L${t[0].toFixed(1)} ${t[1].toFixed(1)}`;
+	}, u = "", d = new Float64Array(s + 1);
+	for (let e = 0; e <= s; e++) d[e] = l(e, 0);
+	for (let e = 0; e < c; e++) {
+		let a = new Float64Array(s + 1);
+		for (let t = 0; t <= s; t++) a[t] = l(t, e + 1);
+		let o = i + e * t, c = o + t;
+		for (let e = 0; e < s; e++) {
+			let i = d[e], s = d[e + 1], l = a[e], f = a[e + 1], p = i >= 0 | (s >= 0 ? 2 : 0) | (f >= 0 ? 4 : 0) | (l >= 0 ? 8 : 0);
+			if (p === 0 || p === 15) continue;
+			let m = r + e * t, h = m + t, g = () => [m + i / (i - s) * t, o], _ = () => [h, o + s / (s - f) * t], v = () => [m + l / (l - f) * t, c], y = () => [m, o + i / (i - l) * t], b = (e, t) => {
+				let r = n(e[0], e[1]), i = n(t[0], t[1]);
+				u += `M${r.x.toFixed(1)} ${r.y.toFixed(1)}L${i.x.toFixed(1)} ${i.y.toFixed(1)}`;
 			};
-			switch (f) {
+			switch (p) {
 				case 1:
 				case 14:
-					y(v(), h());
+					b(y(), g());
 					break;
 				case 2:
 				case 13:
-					y(h(), g());
+					b(g(), _());
 					break;
 				case 3:
 				case 12:
-					y(v(), g());
+					b(y(), _());
 					break;
 				case 4:
 				case 11:
-					y(g(), _());
+					b(_(), v());
 					break;
 				case 6:
 				case 9:
-					y(h(), _());
+					b(g(), v());
 					break;
 				case 7:
 				case 8:
-					y(v(), _());
+					b(y(), v());
 					break;
 				case 5:
-					y(v(), h()), y(g(), _());
+					b(y(), g()), b(_(), v());
 					break;
-				case 10: y(h(), g()), y(_(), v());
+				case 10: b(g(), _()), b(v(), y());
 			}
 		}
-		u = i;
+		d = a;
 	}
-	return l;
+	return u;
 }
-function xt(e, t, n, r, a) {
+function St(e, t, n, r, a) {
 	let o = i(n, r, a), s = (o.x - t.x) / t.width, c = (o.y - t.y) / t.height;
 	return {
 		x: e.x + s * e.w,
 		y: e.y + c * e.h
 	};
 }
-var St = (e, t, n) => n / t.height * e.h, Ct = /* @__PURE__ */ new WeakMap();
-function wt(e, t, n) {
+function Ct(e, t, n, r, i) {
+	let a = e(t, n), o = e(t + r / i, n), s = e(t, n + r), c = o.x - a.x, l = s.x - a.x, u = o.y - a.y, d = s.y - a.y, f = (c + d) / 2, p = (c - d) / 2, m = (u + l) / 2, h = (u - l) / 2, g = Math.hypot(f, h), _ = Math.hypot(p, m), v = (Math.atan2(m, p) + Math.atan2(h, f)) / 2 * (180 / Math.PI);
+	return {
+		x: a.x,
+		y: a.y,
+		rx: g + _,
+		ry: Math.abs(g - _),
+		angle: v
+	};
+}
+var wt = (e, t, n, r, i) => ({
+	cx: e,
+	cy: t,
+	rx: n,
+	ry: r,
+	transform: `rotate(${i} ${e} ${t})`
+}), Tt = /* @__PURE__ */ new WeakMap();
+function Et(e, t, n) {
 	let { x: r, y: i, w: a, h: o } = e;
 	return [
 		r,
@@ -1045,8 +1065,8 @@ function wt(e, t, n) {
 		...n
 	].join(",");
 }
-var Tt = 13;
-function Et() {
+var Dt = 13;
+function Ot() {
 	let e = {
 		at: null,
 		dragging: !1
@@ -1065,20 +1085,20 @@ function Et() {
 		}
 	};
 }
-function Dt({ pointer: t, radius: n }) {
+function kt({ pointer: t, shape: n }) {
 	let { at: r, dragging: i } = e.useSyncExternalStore(t.subscribe, t.get);
-	return !r || i ? null : /* @__PURE__ */ e.createElement("circle", {
-		cx: r.x,
-		cy: r.y,
-		r: Math.max(3, n),
+	if (!r || i) return null;
+	let a = wt(r.x, r.y, Math.max(3, n.rx), Math.max(3, n.ry), n.angle);
+	return /* @__PURE__ */ e.createElement("ellipse", {
+		...a,
 		fill: "none",
 		stroke: "#e0e0e0",
 		strokeWidth: 1,
 		opacity: .8
 	});
 }
-function Ot({ rect: n }) {
-	let r = t.stores.useDevelopStore, a = r((e) => e.params.retouch), o = r((e) => e.params.straighten), s = r((e) => e.params.transform), c = r((e) => e.params.crop), { region: l, imageAspect: f } = t.develop.useDevelopOverlay(), p = ft(), [m] = e.useState(Et), h = e.useRef(null), g = l ?? c, _ = e.useMemo(() => d(o, s, f), [
+function At({ rect: n }) {
+	let r = t.stores.useDevelopStore, a = r((e) => e.params.retouch), o = r((e) => e.params.straighten), s = r((e) => e.params.transform), c = r((e) => e.params.crop), { region: l, imageAspect: f } = t.develop.useDevelopOverlay(), p = pt(), [m] = e.useState(Ot), h = e.useRef(null), g = l ?? c, _ = e.useMemo(() => d(o, s, f), [
 		o,
 		s,
 		f
@@ -1089,66 +1109,60 @@ function Ot({ rect: n }) {
 	]), y = (e, t) => {
 		let r = (e - n.x) / n.w, a = (t - n.y) / n.h;
 		return i(v, g.x + r * g.width, g.y + a * g.height);
-	}, b = (e, t) => xt(n, g, _, e, t), x = (e) => St(n, g, e), S = (e) => yt(e.currentTarget.getBoundingClientRect(), e.clientX, e.clientY), C = () => r.getState().params;
-	function w(e, t) {
-		for (let n = a.length - 1; n >= 0; n--) {
-			let r = a[n];
-			if (r.shape === "brush" && r.dabs) {
-				let n = r.srcX - r.dstX, i = r.srcY - r.dstY;
-				for (let a of r.dabs) {
-					let o = b(a.x + n, a.y + i);
-					if (Math.hypot(e - o.x, t - o.y) <= Math.max(Tt, x(a.radius))) return {
-						kind: "spot-src",
-						id: r.id
-					};
-				}
-			} else {
-				let n = b(r.srcX, r.srcY);
-				if (Math.hypot(e - n.x, t - n.y) <= Math.max(Tt, x(r.radius))) return {
+	}, b = (e, t) => St(n, g, _, e, t), x = (e) => bt(e.currentTarget.getBoundingClientRect(), e.clientX, e.clientY), S = () => r.getState().params;
+	function C(e, t) {
+		let n = y(e, t), r = (r, i, a) => {
+			if (Math.hypot((n.x - r) * f, n.y - i) <= a) return !0;
+			let o = b(r, i);
+			return Math.hypot(e - o.x, t - o.y) <= Dt;
+		};
+		for (let e = a.length - 1; e >= 0; e--) {
+			let t = a[e];
+			if (t.shape === "brush" && t.dabs) {
+				let e = t.srcX - t.dstX, n = t.srcY - t.dstY;
+				if (t.dabs.some((t) => r(t.x + e, t.y + n, t.radius))) return {
 					kind: "spot-src",
-					id: r.id
+					id: t.id
 				};
-			}
-			if (r.shape === "brush" && r.dabs) for (let n of r.dabs) {
-				let i = b(n.x, n.y);
-				if (Math.hypot(e - i.x, t - i.y) <= Math.max(Tt, x(n.radius))) return {
+			} else if (r(t.srcX, t.srcY, t.radius)) return {
+				kind: "spot-src",
+				id: t.id
+			};
+			if (t.shape === "brush" && t.dabs) {
+				if (t.dabs.some((e) => r(e.x, e.y, e.radius))) return {
 					kind: "spot-dst",
-					id: r.id
+					id: t.id
 				};
-			}
-			else {
-				let n = b(r.dstX, r.dstY);
-				if (Math.hypot(e - n.x, t - n.y) <= Math.max(Tt, x(r.radius))) return {
-					kind: "spot-dst",
-					id: r.id
-				};
-			}
+			} else if (r(t.dstX, t.dstY, t.radius)) return {
+				kind: "spot-dst",
+				id: t.id
+			};
 		}
 		return null;
 	}
-	let E = (e) => {
+	let w = (e) => {
 		if (e.button !== 0) return;
-		let { x: t, y: n } = S(e);
+		let { x: t, y: n } = x(e);
 		e.currentTarget.setPointerCapture(e.pointerId);
 		let r = y(t, n);
 		m.set({ dragging: !0 });
-		let i = w(t, n);
+		let i = C(t, n);
 		if (i) {
-			X({ selectedSpotId: i.id }), h.current = {
+			Y({ selectedSpotId: i.id }), h.current = {
 				kind: i.kind,
 				id: i.id,
 				downSrc: r
 			};
 			return;
 		}
-		let a = lt(), o = vt("spot"), s = Math.max(.04, a.size * 1.5), c = {
+		let a = ut(), o = yt("spot"), s = Math.max(.04, a.size * 1.5), c = {
 			x: r.x,
 			y: r.y,
 			radius: a.size,
 			erase: !1,
 			feather: a.feather / 100
 		};
-		ht({
+		gt({
 			id: o,
 			shape: "brush",
 			mode: a.mode,
@@ -1173,8 +1187,8 @@ function Ot({ rect: n }) {
 			lastDab: r,
 			dabs: [c]
 		};
-	}, O = (e) => {
-		let { x: t, y: n } = S(e);
+	}, E = (e) => {
+		let { x: t, y: n } = x(e);
 		m.set({ at: {
 			x: t,
 			y: n
@@ -1184,18 +1198,18 @@ function Ot({ rect: n }) {
 		let i = y(t, n);
 		switch (r.kind) {
 			case "paint": {
-				let e = lt(), t = r.lastDab ?? r.downSrc;
+				let e = ut(), t = r.lastDab ?? r.downSrc;
 				Math.hypot((i.x - t.x) * f, i.y - t.y) >= e.size * .25 && r.dabs && (r.dabs.push({
 					x: i.x,
 					y: i.y,
 					radius: e.size,
 					erase: !1,
 					feather: e.feather / 100
-				}), Z(r.id, { dabs: [...r.dabs] }), r.lastDab = i);
+				}), X(r.id, { dabs: [...r.dabs] }), r.lastDab = i);
 				break;
 			}
 			case "spot-dst": {
-				let e = C().retouch.find((e) => e.id === r.id);
+				let e = S().retouch.find((e) => e.id === r.id);
 				if (e) {
 					let t = i.x - r.downSrc.x, n = i.y - r.downSrc.y, a = {
 						dstX: e.dstX + t,
@@ -1207,12 +1221,12 @@ function Ot({ rect: n }) {
 						...e,
 						x: e.x + t,
 						y: e.y + n
-					}))), Z(r.id, a), r.downSrc = i;
+					}))), X(r.id, a), r.downSrc = i;
 				}
 				break;
 			}
 			case "spot-src": {
-				let e = C().retouch.find((e) => e.id === r.id);
+				let e = S().retouch.find((e) => e.id === r.id);
 				if (e) {
 					let t = i.x - r.downSrc.x, n = i.y - r.downSrc.y, a = e.srcX + t, o = e.srcY + n, s = {
 						srcX: a,
@@ -1224,19 +1238,19 @@ function Ot({ rect: n }) {
 						let t = se(e.dstX, e.dstY, a, o, e.radius, f);
 						s.recolorR = t.r, s.recolorG = t.g, s.recolorB = t.b;
 					}
-					Z(r.id, s), r.downSrc = i;
+					X(r.id, s), r.downSrc = i;
 				}
 				break;
 			}
 		}
 	};
-	function k(e) {
-		let t = C().retouch.find((t) => t.id === e);
+	function O(e) {
+		let t = S().retouch.find((t) => t.id === e);
 		if (!t) return;
-		let n = T(t), r = {}, i = $e(n, t.mode);
+		let n = T(t), r = {}, i = et(n, t.mode);
 		if (i) {
 			let a = D(n);
-			r.srcX = t.dstX + (i.x - a.x), r.srcY = t.dstY + (i.y - a.y), r.angle = i.angle, r.scale = i.scale, t.mode !== "clone" && (r.recolorR = i.r, r.recolorG = i.g, r.recolorB = i.b), Z(e, r);
+			r.srcX = t.dstX + (i.x - a.x), r.srcY = t.dstY + (i.y - a.y), r.angle = i.angle, r.scale = i.scale, t.mode !== "clone" && (r.recolorR = i.r, r.recolorG = i.g, r.recolorB = i.b), X(e, r);
 			return;
 		}
 		let a = t.radius;
@@ -1246,15 +1260,28 @@ function Ot({ rect: n }) {
 			for (let t of n.dabs) a = Math.max(a, Math.hypot((t.x - e.x) * f, t.y - e.y) + t.radius);
 		}
 		let o = Math.max(.04, a * 2.2);
-		r.srcX = t.dstX - o / f, r.srcY = t.dstY - o, Z(e, r);
+		r.srcX = t.dstX - o / f, r.srcY = t.dstY - o, X(e, r);
 	}
-	let A = () => {
+	let k = () => {
 		let e = h.current;
-		h.current = null, m.set({ dragging: !1 }), e && (e.kind === "paint" && (e.dabs && e.dabs.length <= 1 && Z(e.id, {
+		h.current = null, m.set({ dragging: !1 }), e && (e.kind === "paint" && (e.dabs && e.dabs.length <= 1 && X(e.id, {
 			shape: "circle",
 			dabs: void 0
-		}), k(e.id)), r.getState().commitEdit("Retouch"));
-	}, j = St(n, g, p.size), M = jt(), N = n.x + n.w / 2, P = n.y + n.h / 2;
+		}), O(e.id)), r.getState().commitEdit("Retouch"));
+	}, A = n.x + n.w / 2, j = n.y + n.h / 2, M = e.useMemo(() => {
+		let e = y(A, j);
+		return Ct(b, e.x, e.y, p.size, f);
+	}, [
+		n.x,
+		n.y,
+		n.w,
+		n.h,
+		g,
+		_,
+		v,
+		f,
+		p.size
+	]), N = 1 - p.feather / 100, P = Nt();
 	return /* @__PURE__ */ e.createElement("div", {
 		"data-heal-canvas": "",
 		style: {
@@ -1263,9 +1290,9 @@ function Ot({ rect: n }) {
 			cursor: t.cursors.resolve("crosshair"),
 			touchAction: "none"
 		},
-		onPointerDown: E,
-		onPointerMove: O,
-		onPointerUp: A,
+		onPointerDown: w,
+		onPointerMove: E,
+		onPointerUp: k,
 		onPointerLeave: () => m.set({ at: null })
 	}, /* @__PURE__ */ e.createElement("svg", { style: {
 		position: "absolute",
@@ -1273,53 +1300,47 @@ function Ot({ rect: n }) {
 		width: "100%",
 		height: "100%",
 		pointerEvents: "none"
-	} }, /* @__PURE__ */ e.createElement(M, {
+	} }, /* @__PURE__ */ e.createElement(P, {
 		spots: a,
 		selectedSpotId: p.selectedSpotId,
 		rect: n,
 		crop: g,
-		forward: _
-	}), p.preview && /* @__PURE__ */ e.createElement("g", { opacity: .8 }, /* @__PURE__ */ e.createElement("circle", {
-		cx: N,
-		cy: P,
-		r: Math.max(3, j),
+		forward: _,
+		imageAspect: f
+	}), p.preview && /* @__PURE__ */ e.createElement("g", { opacity: .8 }, /* @__PURE__ */ e.createElement("ellipse", {
+		...wt(A, j, Math.max(3, M.rx), Math.max(3, M.ry), M.angle),
 		fill: "none",
 		stroke: "#fff",
 		strokeWidth: 1.2
-	}), /* @__PURE__ */ e.createElement("circle", {
-		cx: N,
-		cy: P,
-		r: Math.max(1, j * (1 - p.feather / 100)),
+	}), /* @__PURE__ */ e.createElement("ellipse", {
+		...wt(A, j, Math.max(1, M.rx * N), Math.max(1, M.ry * N), M.angle),
 		fill: "none",
 		stroke: "#fff",
 		strokeWidth: .6,
 		opacity: .5
-	})), /* @__PURE__ */ e.createElement(Dt, {
+	})), /* @__PURE__ */ e.createElement(kt, {
 		pointer: m,
-		radius: j
+		shape: M
 	})));
 }
-function kt({ spots: t, selectedSpotId: n, rect: r, crop: i, forward: a }) {
-	let o = (e, t) => xt(r, i, a, e, t), s = (e) => St(r, i, e), c = wt(r, i, a), l = (e, t) => {
-		let n = Ct.get(e);
+function jt({ spots: t, selectedSpotId: n, rect: r, crop: i, forward: a, imageAspect: o }) {
+	let s = (e, t) => St(r, i, a, e, t), c = Et(r, i, a), l = (e, t) => {
+		let n = Tt.get(e);
 		if (n?.sig === c) return n.path;
-		let r = bt(t.map((e) => {
-			let t = o(e.x, e.y);
-			return {
-				x: t.x,
-				y: t.y,
-				r: s(e.radius)
-			};
-		}));
-		return Ct.set(e, {
+		let r = t.map((e) => ({
+			x: e.x * o,
+			y: e.y,
+			r: e.radius
+		})), i = Ct(s, t[0].x, t[0].y, t[0].radius, o), a = xt(r, 4 / (Math.max(i.rx, i.ry) / t[0].radius), (e, t) => s(e / o, t));
+		return Tt.set(e, {
 			sig: c,
-			path: r
-		}), r;
+			path: a
+		}), a;
 	};
 	return /* @__PURE__ */ e.createElement(e.Fragment, null, t.map((t) => {
-		let r = o(t.srcX, t.srcY), i = o(t.dstX, t.dstY), a = s(t.radius), c = t.id === n, u = "#e0e0e0";
+		let r = s(t.srcX, t.srcY), i = s(t.dstX, t.dstY), a = t.id === n, c = "#e0e0e0";
 		if (t.shape === "brush" && t.dabs && t.dabs.length > 0) {
-			let n = l(t, t.dabs), a = r.x - i.x, o = r.y - i.y;
+			let n = l(t, t.dabs), o = r.x - i.x, s = r.y - i.y;
 			return /* @__PURE__ */ e.createElement("g", {
 				key: t.id,
 				"data-spot": t.id
@@ -1328,29 +1349,30 @@ function kt({ spots: t, selectedSpotId: n, rect: r, crop: i, forward: a }) {
 				y1: r.y,
 				x2: i.x,
 				y2: i.y,
-				stroke: u,
+				stroke: c,
 				strokeWidth: 1,
 				strokeDasharray: "3 3",
 				opacity: .7
 			}), /* @__PURE__ */ e.createElement("path", {
 				d: n,
 				fill: "none",
-				stroke: u,
+				stroke: c,
 				strokeWidth: 1,
 				strokeDasharray: "2 2",
 				strokeLinecap: "round",
 				strokeLinejoin: "round",
 				opacity: .8,
-				transform: `translate(${a} ${o})`
+				transform: `translate(${o} ${s})`
 			}), /* @__PURE__ */ e.createElement("path", {
 				d: n,
 				fill: "none",
-				stroke: u,
-				strokeWidth: c ? 2 : 1.2,
+				stroke: c,
+				strokeWidth: a ? 2 : 1.2,
 				strokeLinecap: "round",
 				strokeLinejoin: "round"
 			}));
 		}
+		let u = Ct(s, t.srcX, t.srcY, t.radius, o), d = Ct(s, t.dstX, t.dstY, t.radius, o);
 		return /* @__PURE__ */ e.createElement("g", {
 			key: t.id,
 			"data-spot": t.id
@@ -1359,113 +1381,109 @@ function kt({ spots: t, selectedSpotId: n, rect: r, crop: i, forward: a }) {
 			y1: r.y,
 			x2: i.x,
 			y2: i.y,
-			stroke: u,
+			stroke: c,
 			strokeWidth: 1,
 			strokeDasharray: "3 3",
 			opacity: .7
-		}), /* @__PURE__ */ e.createElement("circle", {
-			cx: r.x,
-			cy: r.y,
-			r: a,
+		}), /* @__PURE__ */ e.createElement("ellipse", {
+			...wt(r.x, r.y, u.rx, u.ry, u.angle),
 			fill: "none",
-			stroke: u,
+			stroke: c,
 			strokeWidth: 1,
 			strokeDasharray: "2 2"
-		}), /* @__PURE__ */ e.createElement("circle", {
-			cx: i.x,
-			cy: i.y,
-			r: a,
+		}), /* @__PURE__ */ e.createElement("ellipse", {
+			...wt(i.x, i.y, d.rx, d.ry, d.angle),
 			fill: "none",
-			stroke: u,
-			strokeWidth: c ? 2 : 1.2
+			stroke: c,
+			strokeWidth: a ? 2 : 1.2
 		}));
 	}));
 }
-var At = null, jt = () => At ??= e.memo(kt), Mt = (e) => Math.max(.01, Math.min(.3, Number(e.toFixed(3)))), Nt = {
-	overlay: Ot,
+var Mt = null, Nt = () => Mt ??= e.memo(jt), Pt = (e) => Math.max(.01, Math.min(.3, Number(e.toFixed(3)))), Ft = {
+	overlay: At,
 	zoomable: !0,
-	onEscape: () => X({ selectedSpotId: null }),
+	onEscape: () => Y({ selectedSpotId: null }),
 	onAction: (e) => {
 		if (e !== "brush.smaller" && e !== "brush.larger") return !1;
 		let t = e === "brush.larger" ? 1 : -1;
-		return X({ size: Mt(lt().size + t * .005) }), !0;
+		return Y({ size: Pt(ut().size + t * .005) }), !0;
 	}
-}, Q = "safelight-heal", $ = {
-	panel: `${Q}-panel`,
-	head: `${Q}-head`,
-	toggle: `${Q}-toggle`,
-	hint: `${Q}-hint`,
-	defaults: `${Q}-defaults`,
-	caption: `${Q}-caption`,
-	modes: `${Q}-modes`,
-	mode: `${Q}-mode`,
-	on: `${Q}-on`,
-	list: `${Q}-list`,
-	spot: `${Q}-spot`,
-	eye: `${Q}-eye`,
-	hidden: `${Q}-hidden`,
-	name: `${Q}-name`,
-	remove: `${Q}-remove`
-}, Pt = (e, t) => `color-mix(in srgb, ${e} ${t}%, transparent)`;
-function Ft(e) {
+}, Z = "safelight-heal", Q = {
+	panel: `${Z}-panel`,
+	head: `${Z}-head`,
+	toggle: `${Z}-toggle`,
+	hint: `${Z}-hint`,
+	defaults: `${Z}-defaults`,
+	caption: `${Z}-caption`,
+	modes: `${Z}-modes`,
+	mode: `${Z}-mode`,
+	on: `${Z}-on`,
+	list: `${Z}-list`,
+	spot: `${Z}-spot`,
+	eye: `${Z}-eye`,
+	hidden: `${Z}-hidden`,
+	name: `${Z}-name`,
+	remove: `${Z}-remove`
+}, $ = (e, t) => `color-mix(in srgb, ${e} ${t}%, transparent)`;
+function It(e) {
 	return `
-:where(.${$.panel} > :not(:last-child)) { margin-block: 0 0.5rem; }
-:where(.${$.head}) { display: flex; align-items: center; justify-content: space-between; }
-:where(.${$.toggle}) { border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 11px; background-color: ${e.surface2}; color: ${e.textSecondary}; }
-:where(.${$.toggle}:hover) { color: ${e.textPrimary}; }
-:where(.${$.toggle}.${$.on}) { background-color: ${Pt(e.accent, 30)}; color: ${e.textPrimary}; }
-:where(.${$.hint}) { font-size: 10px; color: ${e.textMuted}; }
-:where(.${$.defaults}) { border-radius: 0.25rem; background-color: ${Pt(e.surface2, 50)}; padding: 0.375rem; }
-:where(.${$.defaults} > :not(:last-child)) { margin-block: 0 0.125rem; }
-:where(.${$.caption}) { padding-bottom: 0.125rem; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: ${e.textMuted}; }
-:where(.${$.modes}) { display: flex; gap: 0.25rem; padding-bottom: 0.25rem; }
-:where(.${$.mode}) { flex: 1 1 0%; border-radius: 0.25rem; padding: 0.125rem 0.5rem; font-size: 10px; text-transform: capitalize; background-color: ${e.surface2}; color: ${e.textSecondary}; }
-:where(.${$.mode}:hover) { color: ${e.textPrimary}; }
-:where(.${$.mode}.${$.on}) { background-color: ${Pt(e.accent, 30)}; color: ${e.textPrimary}; }
-:where(.${$.list} > :not(:last-child)) { margin-block: 0 0.125rem; }
-:where(.${$.spot}) { display: flex; cursor: pointer; align-items: center; gap: 0.375rem; border-radius: 0.25rem; padding: 0.25rem 0.375rem; font-size: 11px; color: ${e.textSecondary}; }
-:where(.${$.spot}:hover) { background-color: ${e.surface2}; }
-:where(.${$.spot}.${$.on}) { background-color: ${Pt(e.accent, 20)}; color: ${e.textPrimary}; }
-:where(.${$.eye}) { flex-shrink: 0; border-radius: 0.25rem; padding: 0 0.125rem; color: ${e.textMuted}; }
-:where(.${$.eye}.${$.hidden}) { color: ${Pt(e.textMuted, 40)}; }
-:where(.${$.eye}:hover) { color: ${e.textPrimary}; }
-:where(.${$.name}) { flex: 1 1 0%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-:where(.${$.remove}) { border-radius: 0.25rem; padding: 0 0.25rem; color: ${e.textMuted}; }
-:where(.${$.remove}:hover) { color: ${e.labelRed}; }
-html.sl-larger-text .${$.hint}, html.sl-larger-text .${$.caption}, html.sl-larger-text .${$.mode} { font-size: 12px !important; }
-html.sl-larger-text .${$.toggle}, html.sl-larger-text .${$.spot} { font-size: 13px !important; line-height: 1.45 !important; }
-html.sl-larger-text .${$.caption} { text-transform: none !important; letter-spacing: normal !important; }
+:where(.${Q.panel} > :not(:last-child)) { margin-block: 0 0.5rem; }
+:where(.${Q.head}) { display: flex; align-items: center; justify-content: space-between; }
+:where(.${Q.toggle}) { border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 11px; background-color: ${e.surface2}; color: ${e.textSecondary}; }
+:where(.${Q.toggle}:hover) { color: ${e.textPrimary}; }
+:where(.${Q.toggle}.${Q.on}) { background-color: ${$(e.accent, 30)}; color: ${e.textPrimary}; }
+:where(.${Q.hint}) { font-size: 10px; color: ${e.textMuted}; }
+:where(.${Q.defaults}) { border-radius: 0.25rem; background-color: ${$(e.surface2, 50)}; padding: 0.375rem; }
+:where(.${Q.defaults} > :not(:last-child)) { margin-block: 0 0.125rem; }
+:where(.${Q.caption}) { padding-bottom: 0.125rem; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: ${e.textMuted}; }
+:where(.${Q.modes}) { display: flex; gap: 0.25rem; padding-bottom: 0.25rem; }
+:where(.${Q.mode}) { flex: 1 1 0%; border-radius: 0.25rem; padding: 0.125rem 0.5rem; font-size: 10px; text-transform: capitalize; background-color: ${e.surface2}; color: ${e.textSecondary}; }
+:where(.${Q.mode}:hover) { color: ${e.textPrimary}; }
+:where(.${Q.mode}.${Q.on}) { background-color: ${$(e.accent, 30)}; color: ${e.textPrimary}; }
+:where(.${Q.list} > :not(:last-child)) { margin-block: 0 0.125rem; }
+:where(.${Q.spot}) { display: flex; cursor: pointer; align-items: center; gap: 0.375rem; border-radius: 0.25rem; padding: 0.25rem 0.375rem; font-size: 11px; color: ${e.textSecondary}; }
+:where(.${Q.spot}:hover) { background-color: ${e.surface2}; }
+:where(.${Q.spot}.${Q.on}) { background-color: ${$(e.accent, 20)}; color: ${e.textPrimary}; }
+:where(.${Q.eye}) { flex-shrink: 0; border-radius: 0.25rem; padding: 0 0.125rem; color: ${e.textMuted}; }
+:where(.${Q.eye}.${Q.hidden}) { color: ${$(e.textMuted, 40)}; }
+:where(.${Q.eye}:hover) { color: ${e.textPrimary}; }
+:where(.${Q.name}) { flex: 1 1 0%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+:where(.${Q.remove}) { border-radius: 0.25rem; padding: 0 0.25rem; color: ${e.textMuted}; }
+:where(.${Q.remove}:hover) { color: ${e.labelRed}; }
+html.sl-larger-text .${Q.hint}, html.sl-larger-text .${Q.caption}, html.sl-larger-text .${Q.mode} { font-size: 12px !important; }
+html.sl-larger-text .${Q.toggle}, html.sl-larger-text .${Q.spot} { font-size: 13px !important; line-height: 1.45 !important; }
+html.sl-larger-text .${Q.caption} { text-transform: none !important; letter-spacing: normal !important; }
 `;
 }
 //#endregion
 //#region src/HealPanel.tsx
-function It() {
-	let { Panel: n, Slider: r } = t.components, i = t.stores.useDevelopStore, a = i((e) => e.params.retouch), o = i((e) => e.commitEdit), s = t.develop.useCanvasToolHeld(), c = ft(), l = a.find((e) => e.id === c.selectedSpotId) ?? null, u = Math.round((l ? l.radius : c.size) * 100), d = l ? l.feather : c.feather, f = l ? l.opacity : c.opacity, p = l ? l.mode : c.mode, m = (e) => {
-		X({ preview: !0 }), l ? Z(l.id, { radius: e / 100 }) : X({ size: e / 100 });
+function Lt() {
+	let { Panel: n, Slider: r } = t.components, i = t.stores.useDevelopStore, a = i((e) => e.params.retouch), o = i((e) => e.commitEdit), s = t.develop.useCanvasToolHeld(), c = pt(), l = a.find((e) => e.id === c.selectedSpotId) ?? null, u = Math.round((l ? l.radius : c.size) * 100), d = l ? l.feather : c.feather, f = l ? l.opacity : c.opacity, p = l ? l.mode : c.mode, m = (e) => {
+		Y({ preview: !0 }), l ? X(l.id, { radius: e / 100 }) : Y({ size: e / 100 });
 	}, h = (e) => {
-		X({ preview: !0 }), l ? Z(l.id, { feather: e }) : X({ feather: e });
+		Y({ preview: !0 }), l ? X(l.id, { feather: e }) : Y({ feather: e });
 	}, g = (e) => {
-		l ? Z(l.id, { opacity: e }) : X({ opacity: e });
+		l ? X(l.id, { opacity: e }) : Y({ opacity: e });
 	}, _ = (e) => {
-		l ? (Z(l.id, { mode: e }), o("Spot Mode")) : X({ mode: e });
+		l ? (X(l.id, { mode: e }), o("Spot Mode")) : Y({ mode: e });
 	}, v = (e) => () => {
-		X({ preview: !1 }), l && o(e);
+		Y({ preview: !1 }), l && o(e);
 	}, y = (e, t) => {
-		Z(e, { visible: !t }), o("Spot Visibility");
-	}, b = (e) => e ? ` ${$.on}` : "";
+		X(e, { visible: !t }), o("Spot Visibility");
+	}, b = (e) => e ? ` ${Q.on}` : "";
 	return /* @__PURE__ */ e.createElement(n, {
 		title: "Heal",
 		defaultOpen: !0
-	}, /* @__PURE__ */ e.createElement("div", { className: $.panel }, /* @__PURE__ */ e.createElement("div", { className: $.head }, /* @__PURE__ */ e.createElement("button", {
+	}, /* @__PURE__ */ e.createElement("div", { className: Q.panel }, /* @__PURE__ */ e.createElement("div", { className: Q.head }, /* @__PURE__ */ e.createElement("button", {
 		type: "button",
-		className: $.toggle + b(s),
+		className: Q.toggle + b(s),
 		onClick: () => {
-			s ? (t.develop.setCanvasTool(null), X({ selectedSpotId: null })) : t.develop.setCanvasTool(Nt);
+			s ? (t.develop.setCanvasTool(null), Y({ selectedSpotId: null })) : t.develop.setCanvasTool(Ft);
 		}
-	}, s ? "Done" : "Heal"), /* @__PURE__ */ e.createElement("span", { className: $.hint }, s ? "Click or drag · drag the source ring to resample" : `${a.length}/32 spots`)), /* @__PURE__ */ e.createElement("div", { className: $.defaults }, /* @__PURE__ */ e.createElement("div", { className: $.caption }, l ? "Editing spot" : "New spot defaults"), /* @__PURE__ */ e.createElement("div", { className: $.modes }, ["heal", "clone"].map((t) => /* @__PURE__ */ e.createElement("button", {
+	}, s ? "Done" : "Heal"), /* @__PURE__ */ e.createElement("span", { className: Q.hint }, s ? "Click or drag · drag the source ring to resample" : `${a.length}/32 spots`)), /* @__PURE__ */ e.createElement("div", { className: Q.defaults }, /* @__PURE__ */ e.createElement("div", { className: Q.caption }, l ? "Editing spot" : "New spot defaults"), /* @__PURE__ */ e.createElement("div", { className: Q.modes }, ["heal", "clone"].map((t) => /* @__PURE__ */ e.createElement("button", {
 		key: t,
 		type: "button",
-		className: $.mode + b(p === t),
+		className: Q.mode + b(p === t),
 		onClick: () => _(t)
 	}, t))), /* @__PURE__ */ e.createElement(r, {
 		label: "Size",
@@ -1496,42 +1514,42 @@ function It() {
 		onCommit: () => {
 			l && o("Spot Opacity");
 		}
-	})), a.length > 0 && /* @__PURE__ */ e.createElement("div", { className: $.list }, a.map((n, r) => {
+	})), a.length > 0 && /* @__PURE__ */ e.createElement("div", { className: Q.list }, a.map((n, r) => {
 		let i = n.visible !== !1;
 		return /* @__PURE__ */ e.createElement("div", {
 			key: n.id,
-			className: $.spot + b(n.id === c.selectedSpotId),
+			className: Q.spot + b(n.id === c.selectedSpotId),
 			onClick: () => {
-				X({ selectedSpotId: n.id }), t.develop.setCanvasTool(Nt);
+				Y({ selectedSpotId: n.id }), t.develop.setCanvasTool(Ft);
 			}
 		}, /* @__PURE__ */ e.createElement("button", {
 			type: "button",
 			title: i ? "Hide" : "Show",
-			className: $.eye + (i ? "" : ` ${$.hidden}`),
+			className: Q.eye + (i ? "" : ` ${Q.hidden}`),
 			onClick: (e) => {
 				e.stopPropagation(), y(n.id, i);
 			}
-		}, i ? "◉" : "○"), /* @__PURE__ */ e.createElement("span", { className: $.name }, n.mode === "clone" ? "Clone" : "Heal", " ", r + 1), /* @__PURE__ */ e.createElement("button", {
+		}, i ? "◉" : "○"), /* @__PURE__ */ e.createElement("span", { className: Q.name }, n.mode === "clone" ? "Clone" : "Heal", " ", r + 1), /* @__PURE__ */ e.createElement("button", {
 			type: "button",
 			title: "Delete",
-			className: $.remove,
+			className: Q.remove,
 			onClick: (e) => {
-				e.stopPropagation(), gt(n.id), o("Delete Spot");
+				e.stopPropagation(), _t(n.id), o("Delete Spot");
 			}
 		}, "×"));
 	}))));
 }
 //#endregion
 //#region src/index.tsx
-var Lt = "core.retouch", Rt = "safelight.heal.styles", zt = 3, Bt = [];
-function Vt(e) {
-	n(e), ut(), e.registerStylesheet({
+var Rt = "core.retouch", zt = "safelight.heal.styles", Bt = 3, Vt = [];
+function Ht(e) {
+	n(e), dt(), e.registerStylesheet({
+		id: zt,
+		css: It(e.ui.tokens)
+	}), e.registerProcessingStage(ot(3)), e.registerPanel({
 		id: Rt,
-		css: Ft(e.ui.tokens)
-	}), e.registerProcessingStage(at(3)), e.registerPanel({
-		id: Lt,
 		title: "Heal",
-		component: It,
+		component: Lt,
 		defaultDock: {
 			module: "develop",
 			direction: "left",
@@ -1540,20 +1558,20 @@ function Vt(e) {
 			height: 160
 		},
 		onReset: () => {
-			X({ selectedSpotId: null }), e.stores.useDevelopStore.getState().resetParams(["retouch"], "Reset Heal");
+			Y({ selectedSpotId: null }), e.stores.useDevelopStore.getState().resetParams(["retouch"], "Reset Heal");
 		}
 	});
-	for (let e of Bt) e();
+	for (let e of Vt) e();
 	let t = e.develop.sourcePixels();
-	t && ae(t.data, t.width, t.height), Bt = [e.develop.onSourcePixels((e) => ae(e.data, e.width, e.height)), e.stores.useDevelopStore.subscribe((t, n) => {
-		t.photoId !== n.photoId && (X({ selectedSpotId: null }), e.develop.setCanvasTool(null));
+	t && ae(t.data, t.width, t.height), Vt = [e.develop.onSourcePixels((e) => ae(e.data, e.width, e.height)), e.stores.useDevelopStore.subscribe((t, n) => {
+		t.photoId !== n.photoId && (Y({ selectedSpotId: null }), e.develop.setCanvasTool(null));
 	})];
 }
-function Ht() {
-	for (let e of Bt) e();
-	Bt = [], ut();
+function Ut() {
+	for (let e of Vt) e();
+	Vt = [], dt();
 }
 //#endregion
-export { zt as LINE, Lt as PANEL_ID, Rt as STYLESHEET_ID, Vt as activate, Ht as deactivate };
+export { Bt as LINE, Rt as PANEL_ID, zt as STYLESHEET_ID, Ht as activate, Ut as deactivate };
 
 //# sourceMappingURL=index.js.map

@@ -1,7 +1,7 @@
 {
   "id": "safelight.heal",
   "name": "Heal",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Heal and clone away spots and blemishes, with a source picked from the photo.",
   "author": "Anthony Reimche",
   "main": "dist/index.js",

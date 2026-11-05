@@ -1,7 +1,7 @@
 {
   "name": "safelight-heal",
   "private": true,
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Heal extension for Safelight: heal and clone spots and brush strokes.",
   "type": "module",
   "scripts": {
