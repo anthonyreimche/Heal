@@ -14,8 +14,9 @@ another part of the photo over them.
 - **Size**, **Feather** and **Opacity** set what new spots take, or change
   the selected spot. While you drag Size or Feather the brush shows at the
   middle of the photo.
-- Develop's brush size shortcuts (`[` and `]` by default) size the brush
-  while the tool is on.
+- Develop's brush shortcuts set the brush while the tool is on: `[` and `]`
+  its size, Shift+`[` and Shift+`]` its feather, and `,` and `.` its opacity
+  (by default).
 - The list shows each spot: the eye hides it, × deletes it, and a click
   selects it. **Done** or Escape turns the tool off.
 

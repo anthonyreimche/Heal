@@ -3,7 +3,7 @@
 // panel and the canvas tool: painting a spot, moving it, sizing the brush.
 
 import { createHash } from "node:crypto";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { LINE, PANEL_ID, STYLESHEET_ID, activate, deactivate } from "../src/index";
 import { React } from "../src/rt";
@@ -75,6 +75,7 @@ describe("activate", () => {
         title: "Heal",
         component: HealPanel,
         defaultDock: { module: "develop", direction: "left", order: 1, width: 240, height: 160 },
+        modules: ["develop"],
         onReset: expect.any(Function),
       },
     ]);
@@ -154,15 +155,66 @@ describe("the stage", () => {
 
 describe("the panel", () => {
   const button = (name: string) => screen.getByRole("button", { name });
+  const modes = () => {
+    const group = document.querySelector<HTMLElement>("[data-segmented]");
+    if (!group) throw new Error("no segmented control");
+    return group;
+  };
+  const mode = (name: string) => within(modes()).getByRole("button", { name });
+  const heal = () => screen.getAllByRole("button", { name: "Heal" }).find((b) => !modes().contains(b))!;
+
+  it("is the kit's button, filled while held, with how to heal in its tooltip, not in panel text", () => {
+    render(<HealPanel />);
+    expect(heal().dataset.active).toBeUndefined();
+    fireEvent.click(heal());
+    expect(button("Done").dataset.active).toBe("true");
+    expect(button("Done").title).toBe("Click or drag · drag the source ring to resample");
+    expect(screen.queryByText(/resample/)).toBeNull();
+  });
+
+  it("picks heal or clone from the kit's segmented control, holding the mode in use", () => {
+    render(<HealPanel />);
+    expect(within(modes()).getAllByRole("button").map((b) => [b.textContent, b.dataset.active])).toEqual([
+      ["Heal", "true"],
+      ["Clone", undefined],
+    ]);
+    fireEvent.click(mode("Clone"));
+    expect(healTool().mode).toBe("clone");
+    expect(mode("Clone").dataset.active).toBe("true");
+  });
+
+  it("selects a spot from a real button in its row, pressed while selected", () => {
+    setParams({ retouch: [spot(), spot({ id: "s2", mode: "clone" })] });
+    render(<HealPanel />);
+    const second = button("Clone 2");
+    expect(second.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(second);
+    expect(healTool().selectedSpotId).toBe("s2");
+    expect(rig.held()).toBe(HEAL_TOOL);
+    expect(button("Clone 2").getAttribute("aria-pressed")).toBe("true");
+    expect(button("Heal 1").getAttribute("aria-pressed")).toBe("false");
+  });
 
   it("holds the canvas with the heal tool, and Done lets go and drops the selection", () => {
     render(<HealPanel />);
-    fireEvent.click(button("Heal"));
+    fireEvent.click(heal());
     expect(rig.held()).toBe(HEAL_TOOL);
     setHealTool({ selectedSpotId: "s1" });
     fireEvent.click(button("Done"));
     expect(rig.held()).toBeNull();
     expect(healTool().selectedSpotId).toBeNull();
+  });
+
+  it("starts new spots from the official brush, sized as Masking's brush is", () => {
+    deactivate();
+    rig = fakeApi({ brushDefaults: { size: 0.12, feather: 0.3, opacity: 0.9, flow: 0.7 } });
+    activate(rig.api);
+    expect(healTool()).toMatchObject({ size: 0.12, feather: 30, opacity: 90 });
+    const { container } = render(<HealPanel />);
+    const [size, feather, opacity] = rig.sliders(container);
+    expect(size).toMatchObject({ min: 1, max: 50, step: 1, defaultValue: 12, value: 12 });
+    expect(feather).toMatchObject({ min: 0, max: 100, step: 1, defaultValue: 30, value: 30 });
+    expect(opacity).toMatchObject({ min: 0, max: 100, step: 1, defaultValue: 90, value: 90 });
   });
 
   it("sets what new spots take, showing the brush while Size drags", () => {
@@ -174,7 +226,7 @@ describe("the panel", () => {
     act(() => size.onCommit?.());
     act(() => feather.onChange(20));
     act(() => opacity.onChange(60));
-    fireEvent.click(button("clone"));
+    fireEvent.click(mode("Clone"));
     expect(healTool()).toMatchObject({ feather: 20, opacity: 60, mode: "clone" });
     expect(rig.calls).toEqual([]);
   });
@@ -188,7 +240,7 @@ describe("the panel", () => {
     expect(size.value).toBe(5);
     act(() => size.onChange(8));
     act(() => size.onCommit?.());
-    fireEvent.click(button("clone"));
+    fireEvent.click(mode("Clone"));
     expect(params().retouch[0]).toMatchObject({ radius: 0.08, mode: "clone" });
     expect(rig.calls.filter((c) => "commitEdit" in c)).toEqual([{ commitEdit: "Spot Size" }, { commitEdit: "Spot Mode" }]);
   });
@@ -221,10 +273,10 @@ describe("the canvas tool", () => {
     fireEvent.pointerDown(canvas(), { pointerId: 1, button: 0, clientX: 500, clientY: 500 });
     fireEvent.pointerUp(canvas(), { pointerId: 1, clientX: 500, clientY: 500 });
     const [made] = params().retouch;
-    expect(made).toMatchObject({ shape: "circle", mode: "heal", dstX: 0.5, dstY: 0.5, radius: 0.04, feather: 50, opacity: 100 });
+    expect(made).toMatchObject({ shape: "circle", mode: "heal", dstX: 0.5, dstY: 0.5, radius: 0.08, feather: 50, opacity: 100 });
     expect(made.dabs).toBeUndefined();
-    expect(made.srcX).toBeCloseTo(0.5 - 0.088);
-    expect(made.srcY).toBeCloseTo(0.5 - 0.088);
+    expect(made.srcX).toBeCloseTo(0.5 - 0.176);
+    expect(made.srcY).toBeCloseTo(0.5 - 0.176);
     expect(healTool().selectedSpotId).toBe(made.id);
     expect(rig.calls.filter((c) => "commitEdit" in c)).toEqual([{ commitEdit: "Retouch" }]);
   });
@@ -260,12 +312,31 @@ describe("the canvas tool", () => {
     expect(params().retouch).toHaveLength(MAX_SPOTS);
   });
 
-  it("sizes the brush with Develop's brush size shortcuts, leaving other actions to core", () => {
+  it("takes the official brush's shortcuts for its size, feather and opacity", () => {
+    expect(HEAL_TOOL.wants?.("brush.larger")).toBe(true);
     expect(HEAL_TOOL.onAction?.("brush.larger")).toBe(true);
-    expect(healTool().size).toBe(0.045);
-    expect(HEAL_TOOL.onAction?.("brush.smaller")).toBe(true);
-    expect(HEAL_TOOL.onAction?.("brush.featherUp")).toBe(false);
-    expect(healTool().size).toBe(0.04);
+    expect(healTool().size).toBe(0.09);
+    expect(rig.brushSteps.at(-1)).toEqual({ action: "brush.larger", brush: { size: 0.08, feather: 0.5, opacity: 1 } });
+    expect(HEAL_TOOL.onAction?.("brush.featherUp")).toBe(true);
+    expect(HEAL_TOOL.onAction?.("brush.opacityDown")).toBe(true);
+    expect(healTool()).toMatchObject({ feather: 55, opacity: 90 });
+  });
+
+  it("leaves the flow shortcuts, which it has no setting for, and other actions to core", () => {
+    expect(HEAL_TOOL.wants?.("brush.flowUp")).toBe(false);
+    expect(HEAL_TOOL.onAction?.("brush.flowUp")).toBe(false);
+    expect(HEAL_TOOL.wants?.("develop.zoomIn")).toBe(false);
+    expect(HEAL_TOOL.onAction?.("develop.zoomIn")).toBe(false);
+  });
+
+  it("finishes a stroke whose pointer is cancelled, showing the ring again after", () => {
+    draw();
+    fireEvent.pointerDown(canvas(), { pointerId: 1, button: 0, clientX: 500, clientY: 500 });
+    fireEvent.pointerCancel(canvas(), { pointerId: 1, clientX: 500, clientY: 500 });
+    expect(params().retouch).toHaveLength(1);
+    expect(rig.calls.filter((c) => "commitEdit" in c)).toEqual([{ commitEdit: "Retouch" }]);
+    fireEvent.pointerMove(canvas(), { pointerId: 2, clientX: 600, clientY: 500 });
+    expect(rig.brushCursors().map((c) => c.at)).toEqual([{ x: 600, y: 500 }]);
   });
 
   it("drops the selection on Escape", () => {

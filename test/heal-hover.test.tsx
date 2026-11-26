@@ -73,8 +73,6 @@ function renderCanvas(rect: OverlayRect = view()) {
   return {
     canvas,
     rerender: (next: OverlayRect) => result.rerender(<HealCanvas rect={next} />),
-    // The ring and the size reference; spots draw their circles inside a group.
-    rings: () => [...result.container.querySelectorAll("svg > ellipse")],
     paths: () => [...result.container.querySelectorAll("path")].map((p) => p.getAttribute("d")),
   };
 }
@@ -97,41 +95,37 @@ afterEach(cleanup);
 describe("hover", () => {
   it("moves the ring with the pointer without tracing any outline again", () => {
     seed();
-    const { canvas, rings } = renderCanvas();
+    const { canvas } = renderCanvas();
     expect(mapped).toHaveBeenCalled();
     mapped.mockClear();
 
     for (let k = 0; k < 10; k++) hover(canvas, 100 + 20 * k, 200 + 10 * k);
 
     expect(mapped).not.toHaveBeenCalled();
-    const [ring] = rings();
-    expect(ring.getAttribute("cx")).toBe("280");
-    expect(ring.getAttribute("cy")).toBe("290");
-    expect(Number(ring.getAttribute("rx"))).toBeCloseTo(30);
-    expect(Number(ring.getAttribute("ry"))).toBeCloseTo(30);
+    expect(rig.brushCursors().map((c) => c.at)).toEqual([{ x: 280, y: 290 }]);
   });
 
   it("hides the ring while a stroke is being painted", () => {
     seed();
-    const { canvas, rings } = renderCanvas();
+    const { canvas } = renderCanvas();
     hover(canvas, 900, 700);
-    expect(rings()).toHaveLength(1);
+    expect(rig.brushCursors()).toHaveLength(1);
 
     fireEvent.pointerDown(canvas, { pointerId: 1, button: 0, clientX: 900, clientY: 700 });
     hover(canvas, 910, 705);
 
-    expect(rings()).toHaveLength(0);
+    expect(rig.brushCursors()).toHaveLength(0);
   });
 
   it("drops the ring when the pointer leaves", () => {
     seed();
-    const { canvas, rings } = renderCanvas();
+    const { canvas } = renderCanvas();
     hover(canvas, 300, 300);
-    expect(rings()).toHaveLength(1);
+    expect(rig.brushCursors()).toHaveLength(1);
 
     fireEvent.pointerLeave(canvas);
 
-    expect(rings()).toHaveLength(0);
+    expect(rig.brushCursors()).toHaveLength(0);
   });
 });
 

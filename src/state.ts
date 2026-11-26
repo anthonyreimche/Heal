@@ -25,9 +25,23 @@ export interface HealTool {
   preview: boolean;
 }
 
-const INITIAL: HealTool = { size: 0.04, feather: 50, opacity: 100, mode: "heal", selectedSpotId: null, preview: false };
+// A new spot starts from the official brush; feather and opacity are kept in
+// percent, as a spot holds them.
+function initial(): HealTool {
+  const brush = api.develop.brush.defaults;
+  return {
+    size: brush.size,
+    feather: Math.round(brush.feather * 100),
+    opacity: Math.round(brush.opacity * 100),
+    mode: "heal",
+    selectedSpotId: null,
+    preview: false,
+  };
+}
 
-let tool: HealTool = INITIAL;
+// The brush starts from the host's defaults, so the tool has no state until
+// activate() calls resetHealTool().
+let tool!: HealTool;
 const listeners = new Set<() => void>();
 
 export const healTool = (): HealTool => tool;
@@ -37,7 +51,7 @@ export function setHealTool(partial: Partial<HealTool>): void {
   for (const listener of listeners) listener();
 }
 
-export const resetHealTool = () => setHealTool(INITIAL);
+export const resetHealTool = () => setHealTool(initial());
 
 export const subscribeHealTool = (listener: () => void) => {
   listeners.add(listener);

@@ -1,8 +1,10 @@
 // The rings show the disc the stage heals. A spot is a disc in the photo; the
 // photo's transform draws it on screen, so with Transform ▸ Aspect +100 (1.5×
 // wider, 1/1.5 as tall) the healed disc is an ellipse and its ring must be too.
+// The cursor ring is the official brush ring core draws, which does the same
+// for the spot a click would heal.
 
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { React, initRuntime } from "../src/rt";
 import type { RetouchSpot } from "../src/safelight";
@@ -60,11 +62,6 @@ const spotRing = () => {
   if (!group) throw new Error("no spot drawn");
   return group.lastElementChild as Element;
 };
-const cursorRing = () => {
-  const ring = document.querySelector("[data-heal-canvas] > svg > :not(g)");
-  if (!ring) throw new Error("no cursor ring");
-  return ring;
-};
 
 beforeEach(() => {
   rig = fakeApi();
@@ -93,14 +90,6 @@ describe("with Aspect +100", () => {
     expect(Math.abs(ry - 50 / WIDE)).toBeLessThan(2);
   });
 
-  it("sizes the cursor ring as the spot a click would heal", () => {
-    withAspect(100, []);
-    render(<HealCanvas rect={RECT} />);
-    fireEvent.pointerMove(canvas(), { pointerId: 1, clientX: 500, clientY: 500 });
-    const { rx, ry } = extent(cursorRing());
-    expect(rx).toBeCloseTo(healTool().size * 1000 * WIDE, 0);
-    expect(ry).toBeCloseTo((healTool().size * 1000) / WIDE, 0);
-  });
 
   it("grabs a spot anywhere on its ring, not just inside the unstretched circle", () => {
     withAspect(100, [spot()]);
@@ -136,6 +125,33 @@ describe("with Aspect +100 and Straighten 30°", () => {
     expect(Math.abs(round.rx - traced.rx)).toBeLessThan(2);
     expect(Math.abs(round.ry - traced.ry)).toBeLessThan(2);
     expect(round.rx).not.toBeCloseTo(round.ry, 0);
+  });
+});
+
+describe("the cursor ring", () => {
+  it("is the official ring at the pointer, sized and feathered as a click would heal", () => {
+    setHealTool({ size: 0.06, feather: 30 });
+    render(<HealCanvas rect={RECT} />);
+    fireEvent.pointerMove(canvas(), { pointerId: 1, clientX: 500, clientY: 400 });
+    expect(rig.brushCursors()).toEqual([{ at: { x: 500, y: 400 }, size: 0.06, feather: 0.3 }]);
+  });
+
+  it("follows the pointer as core's framePoint places it under Interface scale", () => {
+    rig.setFrameZoom(2);
+    render(<HealCanvas rect={RECT} />);
+    fireEvent.pointerMove(canvas(), { pointerId: 1, clientX: 500, clientY: 400 });
+    expect(rig.brushCursors()[0].at).toEqual({ x: 250, y: 200 });
+  });
+
+  it("shows the reference at the centre while Size or Feather is dragged", () => {
+    render(<HealCanvas rect={RECT} />);
+    act(() => setHealTool({ preview: true }));
+    expect(rig.brushCursors()).toEqual([{ at: "centre", size: healTool().size, feather: healTool().feather / 100 }]);
+  });
+
+  it("keeps the crosshair cursor under the ring", () => {
+    render(<HealCanvas rect={RECT} />);
+    expect(canvas().style.cursor).toBe("crosshair");
   });
 });
 

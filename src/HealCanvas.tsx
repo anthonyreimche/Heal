@@ -15,20 +15,12 @@ import type { BrushDab, CanvasTool, CropRect, OverlayRect, RetouchSpot } from ".
 import { buildForwardTransform, buildInverseTransform, mat3Apply, type Mat3 } from "./transform";
 import { findHealSource, healColorOffset } from "./heal-source";
 import { regionAnchor, spotRegion } from "./heal-region";
-import { addSpot, healTool, setHealTool, updateSpot, useHealTool } from "./state";
+import { addSpot, healTool, setHealTool, updateSpot, useHealTool, type HealTool } from "./state";
 
 type Rect = OverlayRect;
 
 let idSeq = 0;
 const genId = (p: string) => `${p}-${Date.now().toString(36)}-${idSeq++}`;
-
-// Pointer position in an element's local LAYOUT pixels, the space `rect` is in:
-// Preferences ▸ Interface scale zooms <body>, and under CSS zoom clientX and
-// getBoundingClientRect() are in zoomed visual pixels.
-function frameLocalPoint(rect: { left: number; top: number }, clientX: number, clientY: number) {
-  const z = api.stores.useSettings.getState().uiScale || 1;
-  return { x: (clientX - rect.left) / z, y: (clientY - rect.top) / z };
-}
 
 type Point = { x: number; y: number };
 
@@ -191,12 +183,18 @@ function pointerStore() {
 
 type PointerStore = ReturnType<typeof pointerStore>;
 
-/** The brush ring under the pointer, hidden while a drag is on. */
-function Ring({ pointer, shape }: { pointer: PointerStore; shape: ScreenDisc }) {
+/** The official brush ring under the pointer, hidden while a drag is on, and
+ *  at the centre while a Size or Feather slider is dragged. */
+function BrushRings({ pointer }: { pointer: PointerStore }) {
   const { at, dragging } = React.useSyncExternalStore(pointer.subscribe, pointer.get);
-  if (!at || dragging) return null;
-  const ring = ellipseAt(at.x, at.y, Math.max(3, shape.rx), Math.max(3, shape.ry), shape.angle);
-  return <ellipse {...ring} fill="none" stroke="#e0e0e0" strokeWidth={1} opacity={0.8} />;
+  const { size, feather, preview } = useHealTool();
+  const { BrushCursor } = api.develop;
+  return (
+    <>
+      {at && !dragging && <BrushCursor at={at} size={size} feather={feather / 100} />}
+      {preview && <BrushCursor at="centre" size={size} feather={feather / 100} />}
+    </>
+  );
 }
 
 /** The tool held while the Heal button is on. */
@@ -226,8 +224,7 @@ export function HealCanvas({ rect }: { rect: Rect }) {
     return mat3Apply(inv, crop.x + ox * crop.width, crop.y + oy * crop.height);
   };
   const toScreen = (sx: number, sy: number) => projectToScreen(rect, crop, forward, sx, sy);
-  const frameXY = (e: ReactPointerEvent) =>
-    frameLocalPoint(e.currentTarget.getBoundingClientRect(), e.clientX, e.clientY);
+  const frameXY = (e: ReactPointerEvent) => api.develop.framePoint(e.currentTarget, e.clientX, e.clientY);
   const params = () => useDevelopStore.getState().params;
 
   function hitSpot(px: number, py: number): { kind: "spot-dst" | "spot-src"; id: string } | null {
@@ -401,15 +398,6 @@ export function HealCanvas({ rect }: { rect: Rect }) {
     void useDevelopStore.getState().commitEdit("Retouch");
   };
 
-  const refCx = rect.x + rect.w / 2;
-  const refCy = rect.y + rect.h / 2;
-  // The size a new spot heals at, taken at the view's centre: the cursor ring
-  // keeps it while it follows the pointer, so a hover maps nothing.
-  const spotShape = React.useMemo(() => {
-    const c = toSource(refCx, refCy);
-    return discOnScreen(toScreen, c.x, c.y, tool.size, imageAspect);
-  }, [rect.x, rect.y, rect.w, rect.h, crop, forward, inv, imageAspect, tool.size]);
-  const core = 1 - tool.feather / 100;
   const Outlines = memoOutlines();
 
   return (
@@ -419,19 +407,13 @@ export function HealCanvas({ rect }: { rect: Rect }) {
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
       onPointerLeave={() => pointer.set({ at: null })}
     >
       <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
         <Outlines spots={spots} selectedSpotId={tool.selectedSpotId} rect={rect} crop={crop} forward={forward} imageAspect={imageAspect} />
-        {/* Centre reference while dragging the Size / Feather sliders. */}
-        {tool.preview && (
-          <g opacity={0.8}>
-            <ellipse {...ellipseAt(refCx, refCy, Math.max(3, spotShape.rx), Math.max(3, spotShape.ry), spotShape.angle)} fill="none" stroke="#fff" strokeWidth={1.2} />
-            <ellipse {...ellipseAt(refCx, refCy, Math.max(1, spotShape.rx * core), Math.max(1, spotShape.ry * core), spotShape.angle)} fill="none" stroke="#fff" strokeWidth={0.6} opacity={0.5} />
-          </g>
-        )}
-        <Ring pointer={pointer} shape={spotShape} />
       </svg>
+      <BrushRings pointer={pointer} />
     </div>
   );
 }
@@ -502,18 +484,27 @@ let MemoOutlines: ComponentType<SpotOutlinesProps> | null = null;
 // Made on first use, with the React the host injects.
 const memoOutlines = () => (MemoOutlines ??= React.memo(SpotOutlines));
 
-const clampSize = (v: number) => Math.max(0.01, Math.min(0.3, Number(v.toFixed(3))));
+// Whether the tool takes the brush shortcut `action`; with `run`, take it.
+// Feather and opacity are kept in percent, as a spot holds them; there is no
+// flow.
+function brushAction(action: string, run: boolean): boolean {
+  const t = healTool();
+  const step = api.develop.brush.step(action, { size: t.size, feather: t.feather / 100, opacity: t.opacity / 100 });
+  if (!step || step.key === "flow") return false;
+  if (run) {
+    const patch: Partial<HealTool> = {};
+    patch[step.key] = step.key === "size" ? step.value : Math.round(step.value * 100);
+    setHealTool(patch);
+  }
+  return true;
+}
 
-/** The tool held while the Heal button is on. [ and ] (Develop's brush size
- *  shortcuts) size new spots; Escape drops the selection. */
+/** The tool held while the Heal button is on. The official brush shortcuts set
+ *  the size, feather and opacity new spots take; Escape drops the selection. */
 export const HEAL_TOOL: CanvasTool = {
   overlay: HealCanvas,
   zoomable: true,
   onEscape: () => setHealTool({ selectedSpotId: null }),
-  onAction: (action) => {
-    if (action !== "brush.smaller" && action !== "brush.larger") return false;
-    const dir = action === "brush.larger" ? 1 : -1;
-    setHealTool({ size: clampSize(healTool().size + dir * 0.005) });
-    return true;
-  },
+  onAction: (action) => brushAction(action, true),
+  wants: (action) => brushAction(action, false),
 };

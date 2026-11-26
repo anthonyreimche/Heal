@@ -3,11 +3,17 @@
 // every write; the canvas tool is kept as core would keep it, and the source
 // pixels are handed out as core hands them. Core's Panel draws its children,
 // and core's Slider is a stub that keeps the props it was last rendered with,
-// so a test can drive it the way the real one would.
+// so a test can drive it the way the real one would. The official brush hands
+// out the defaults the test asks for, steps without holding to a range (core's
+// own tests cover that) and records what it was asked; its ring is a stub that
+// keeps the props of each one drawn.
 
 import * as React from "react";
 import { create } from "zustand";
 import type {
+  BrushCursorProps,
+  BrushSettings,
+  ButtonProps,
   CanvasTool,
   DevelopOverlayState,
   DevelopParams,
@@ -16,7 +22,7 @@ import type {
   PanelProps,
   ProcessingStageContribution,
   SafelightAPI,
-  SettingsState,
+  SegmentedControlProps,
   SliderProps,
   SourcePixels,
   StoreApi,
@@ -33,7 +39,6 @@ export type DevelopCall =
 export const TOKENS: UiTokens = {
   accent: "var(--color-accent)",
   surface2: "var(--color-surface-2)",
-  surface3: "var(--color-surface-3)",
   textPrimary: "var(--color-text-primary)",
   textSecondary: "var(--color-text-secondary)",
   textMuted: "var(--color-text-muted)",
@@ -46,6 +51,25 @@ export const PARAMS: DevelopParams = {
   transform: { ...DEFAULT_TRANSFORM },
   retouch: [],
 };
+
+/** The official brush's defaults as core hands them out. */
+export const BRUSH_DEFAULTS: Readonly<BrushSettings> = Object.freeze({ size: 0.08, feather: 0.5, opacity: 1, flow: 1 });
+
+const BRUSH_STEPS: Record<string, { key: keyof BrushSettings; by: number }> = {
+  "brush.smaller": { key: "size", by: -0.01 },
+  "brush.larger": { key: "size", by: 0.01 },
+  "brush.featherDown": { key: "feather", by: -0.05 },
+  "brush.featherUp": { key: "feather", by: 0.05 },
+  "brush.opacityDown": { key: "opacity", by: -0.1 },
+  "brush.opacityUp": { key: "opacity", by: 0.1 },
+  "brush.flowDown": { key: "flow", by: -0.1 },
+  "brush.flowUp": { key: "flow", by: 0.1 },
+};
+
+export interface BrushStepAsked {
+  action: string;
+  brush: Partial<BrushSettings>;
+}
 
 export interface Rig {
   api: SafelightAPI;
@@ -61,11 +85,36 @@ export interface Rig {
   showSource(pixels: SourcePixels): void;
   /** The latest props of each slider drawn in `root`, in document order. */
   sliders(root: ParentNode): SliderProps[];
+  /** Each brush step the extension asked core for. */
+  brushSteps: BrushStepAsked[];
+  /** The props of each official brush ring drawn now that draws something. */
+  brushCursors(): BrushCursorProps[];
+  /** Interface scale as framePoint applies it. */
+  setFrameZoom(zoom: number): void;
+}
+
+function Button({ active, variant: _variant, size: _size, full: _full, type = "button", children, ...rest }: ButtonProps) {
+  return React.createElement("button", { ...rest, type, "data-active": active ? "true" : undefined }, children);
+}
+
+function SegmentedControl({ value, onChange, options }: SegmentedControlProps) {
+  return React.createElement(
+    "div",
+    { "data-segmented": "" },
+    options.map((o) =>
+      React.createElement(
+        "button",
+        { key: o.value, type: "button", title: o.title, "data-active": value === o.value ? "true" : undefined, onClick: () => onChange(o.value) },
+        o.label,
+      ),
+    ),
+  );
 }
 
 export function fakeApi({
   params = {} as Partial<DevelopParams>,
   source = null as SourcePixels | null,
+  brushDefaults = BRUSH_DEFAULTS,
 } = {}): Rig {
   const calls: DevelopCall[] = [];
   const panels: PanelContribution[] = [];
@@ -76,6 +125,10 @@ export function fakeApi({
   let pixels = source;
   const sliderProps = new Map<number, SliderProps>();
   let nextSlider = 0;
+  const brushSteps: BrushStepAsked[] = [];
+  const cursors = new Map<number, BrushCursorProps>();
+  let nextCursor = 0;
+  let frameZoom = 1;
 
   const develop: StoreApi<DevelopStoreState> = create<DevelopStoreState>()((set) => ({
     params: { ...PARAMS, ...params },
@@ -93,7 +146,6 @@ export function fakeApi({
       set({ params: { ...PARAMS } });
     },
   }));
-  const settings: StoreApi<SettingsState> = create<SettingsState>()(() => ({ uiScale: 1 }));
   const overlay: StoreApi<DevelopOverlayState> = create<DevelopOverlayState>()(() => ({ region: null, imageAspect: 1 }));
 
   function Panel({ children, title }: PanelProps) {
@@ -106,6 +158,20 @@ export function fakeApi({
     return React.createElement("div", { "data-slider": id }, `${props.label} ${props.value}`);
   }
 
+  function BrushCursor(props: BrushCursorProps) {
+    const id = React.useRef(nextCursor++).current;
+    cursors.set(id, props);
+    React.useEffect(() => () => void cursors.delete(id), [id]);
+    return null;
+  }
+
+  function stepBrush(action: string, brush: Partial<BrushSettings>) {
+    brushSteps.push({ action, brush: { ...brush } });
+    const s = BRUSH_STEPS[action];
+    const now = s ? brush[s.key] : undefined;
+    return s && now !== undefined ? { key: s.key, value: Math.round((now + s.by) * 1000) / 1000 } : null;
+  }
+
   const api: SafelightAPI = {
     version: 1,
     extensionId: "safelight.heal",
@@ -114,7 +180,7 @@ export function fakeApi({
     registerProcessingStage: (c) => void stages.push(c),
     registerStylesheet: (c) => void stylesheets.push(c),
     components: { Panel, Slider },
-    stores: { useDevelopStore: develop, useSettings: settings },
+    stores: { useDevelopStore: develop },
     develop: {
       useDevelopOverlay: () => overlay(),
       setCanvasTool: (t) => tool.setState({ tool: t }),
@@ -124,9 +190,15 @@ export function fakeApi({
         sourceListeners.add(listener);
         return () => void sourceListeners.delete(listener);
       },
+      brush: { defaults: brushDefaults, actions: Object.keys(BRUSH_STEPS), step: stepBrush },
+      BrushCursor,
+      framePoint: (el, clientX, clientY) => {
+        const r = el.getBoundingClientRect();
+        return { x: (clientX - r.left) / frameZoom, y: (clientY - r.top) / frameZoom };
+      },
     },
     cursors: { resolve: (token) => (token === "crosshair" ? "crosshair" : "default") },
-    ui: { tokens: TOKENS },
+    ui: { tokens: TOKENS, Button, SegmentedControl },
   };
 
   return {
@@ -148,5 +220,10 @@ export function fakeApi({
         if (!props) throw new Error("a slider without props");
         return props;
       }),
+    brushSteps,
+    brushCursors: () => [...cursors.values()].filter((c) => c.at !== null),
+    setFrameZoom: (zoom) => {
+      frameZoom = zoom;
+    },
   };
 }

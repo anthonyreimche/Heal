@@ -13,13 +13,20 @@ import { removeSpot, setHealTool, updateSpot, useHealTool } from "./state";
 import { MAX_SPOTS } from "./stages";
 import { cls } from "./styles";
 
+const MODES = [
+  { value: "heal", label: "Heal" },
+  { value: "clone", label: "Clone" },
+] as const;
+
 export function HealPanel() {
   const { Panel, Slider } = api.components;
+  const { Button, SegmentedControl } = api.ui;
   const useDevelopStore = api.stores.useDevelopStore;
   const spots = useDevelopStore((s) => s.params.retouch);
   const commitEdit = useDevelopStore((s) => s.commitEdit);
   const active = api.develop.useCanvasToolHeld();
   const tool = useHealTool();
+  const brush = api.develop.brush.defaults;
 
   const selected = spots.find((s) => s.id === tool.selectedSpotId) ?? null;
   const sizeVal = Math.round((selected ? selected.radius : tool.size) * 100);
@@ -65,9 +72,10 @@ export function HealPanel() {
     <Panel title="Heal" defaultOpen>
       <div className={cls.panel}>
         <div className={cls.head}>
-          <button
-            type="button"
-            className={cls.toggle + on(active)}
+          <Button
+            size="sm"
+            active={active}
+            title="Click or drag · drag the source ring to resample"
             onClick={() => {
               if (active) {
                 api.develop.setCanvasTool(null);
@@ -78,30 +86,48 @@ export function HealPanel() {
             }}
           >
             {active ? "Done" : "Heal"}
-          </button>
-          <span className={cls.hint}>
-            {active ? "Click or drag · drag the source ring to resample" : `${spots.length}/${MAX_SPOTS} spots`}
-          </span>
+          </Button>
+          <span className={cls.count}>{`${spots.length}/${MAX_SPOTS} spots`}</span>
         </div>
 
         <div className={cls.defaults}>
           <div className={cls.caption}>{selected ? "Editing spot" : "New spot defaults"}</div>
-          <div className={cls.modes}>
-            {(["heal", "clone"] as const).map((m) => (
-              <button key={m} type="button" className={cls.mode + on(modeVal === m)} onClick={() => onMode(m)}>
-                {m}
-              </button>
-            ))}
-          </div>
-          <Slider label="Size" value={sizeVal} min={1} max={30} step={1} defaultValue={4} onChange={onSize} onCommit={endPreview("Spot Size")} />
-          <Slider label="Feather" value={featherVal} min={0} max={100} step={1} defaultValue={50} onChange={onFeather} onCommit={endPreview("Spot Feather")} />
+          <SegmentedControl
+            size="sm"
+            value={modeVal}
+            onChange={(m) => {
+              const picked = MODES.find((o) => o.value === m);
+              if (picked) onMode(picked.value);
+            }}
+            options={[...MODES]}
+          />
+          <Slider
+            label="Size"
+            value={sizeVal}
+            min={1}
+            max={50}
+            step={1}
+            defaultValue={Math.round(brush.size * 100)}
+            onChange={onSize}
+            onCommit={endPreview("Spot Size")}
+          />
+          <Slider
+            label="Feather"
+            value={featherVal}
+            min={0}
+            max={100}
+            step={1}
+            defaultValue={Math.round(brush.feather * 100)}
+            onChange={onFeather}
+            onCommit={endPreview("Spot Feather")}
+          />
           <Slider
             label="Opacity"
             value={opacityVal}
             min={0}
             max={100}
             step={1}
-            defaultValue={100}
+            defaultValue={Math.round(brush.opacity * 100)}
             onChange={onOpacity}
             onCommit={() => {
               if (selected) void commitEdit("Spot Opacity");
@@ -113,35 +139,33 @@ export function HealPanel() {
           <div className={cls.list}>
             {spots.map((s, i) => {
               const visible = s.visible !== false;
+              const isSelected = s.id === tool.selectedSpotId;
               return (
-                <div
-                  key={s.id}
-                  className={cls.spot + on(s.id === tool.selectedSpotId)}
-                  onClick={() => {
-                    setHealTool({ selectedSpotId: s.id });
-                    api.develop.setCanvasTool(HEAL_TOOL);
-                  }}
-                >
+                <div key={s.id} className={cls.spot + on(isSelected)}>
                   <button
                     type="button"
                     title={visible ? "Hide" : "Show"}
                     className={cls.eye + (visible ? "" : ` ${cls.hidden}`)}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleVisibility(s.id, visible);
-                    }}
+                    onClick={() => toggleVisibility(s.id, visible)}
                   >
                     {visible ? "◉" : "○"}
                   </button>
-                  <span className={cls.name}>
-                    {s.mode === "clone" ? "Clone" : "Heal"} {i + 1}
-                  </span>
+                  <button
+                    type="button"
+                    aria-pressed={isSelected}
+                    className={cls.name}
+                    onClick={() => {
+                      setHealTool({ selectedSpotId: s.id });
+                      api.develop.setCanvasTool(HEAL_TOOL);
+                    }}
+                  >
+                    {`${s.mode === "clone" ? "Clone" : "Heal"} ${i + 1}`}
+                  </button>
                   <button
                     type="button"
                     title="Delete"
                     className={cls.remove}
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={() => {
                       removeSpot(s.id);
                       void commitEdit("Delete Spot");
                     }}

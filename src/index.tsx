@@ -33,6 +33,7 @@ export function activate(host: SafelightAPI): void {
     title: "Heal",
     component: HealPanel,
     defaultDock: { module: "develop", direction: "left", order: 1, width: 240, height: 160 },
+    modules: ["develop"],
     onReset: () => {
       setHealTool({ selectedSpotId: null });
       void host.stores.useDevelopStore.getState().resetParams(["retouch"], "Reset Heal");
